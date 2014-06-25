@@ -34,6 +34,9 @@ class color:
 
 def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
                       norm_factor, vis, edec, tau0):
+    """
+        Perform pure hydro simulations with averaged initial conditions
+    """
     initial_path = 'RESULTS/initial_conditions'
     # hydro
     if path.exists(path.join(hydro_path, 'results')):
@@ -69,7 +72,8 @@ def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
                            run_record, err_record,
                            norm_factor, vis, edec, tau0):
     """
-        Perform hydro + UrQMD hybrid approach on averaged initial conditions
+        Perform hydro + UrQMD hybrid simulations with averaged initial
+        conditions
     """
     initial_path = 'RESULTS/initial_conditions'
     result_folder = ('%s%.0fVis%gC%sEdec%gTau%g'
@@ -156,15 +160,27 @@ def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
     p = subprocess.Popen('bash runqmd.sh', shell=True, stdout=run_record,
                          stderr=err_record, cwd=UrQMD_path)
     p.wait()
+
     worth_storing = []
     for aGlob in ['particle_list.dat']:
         worth_storing.extend(glob(path.join(UrQMD_path, aGlob)))
     for aFile in glob(path.join(UrQMD_path, '*')):
         if aFile in worth_storing:
             shutil.copy(aFile, results_folder_path)
+    remove(path.join(UrQMD_path, input_file))  # clean up
+    remove(path.join(UrQMD_path, output_file))  # clean up
 
 
 def fit_hydro(dNdeta_goal, vis, edec, tau0):
+    """
+    This function find the overall normalization factor for the hydrodynamic
+    simulations at given collision energy
+    :param dNdeta_goal: The measured charged hadron dN/deta in the mid rapidity
+    :param vis: the specific shear viscosity for the QGP
+    :param edec: the decoupling energy density in unit [GeV/fm^3]
+    :param tau0: the starting time of hydrodynamic simulation in unit [fm/c]
+    :return: the fitted overall normalization factor
+    """
     run_record_file_name = 'run_record_fitNorm.dat'
     err_record_file_name = 'err_record_fitNorm.dat'
     run_record = open(path.join('.', run_record_file_name), 'a')
@@ -244,7 +260,8 @@ def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0):
 
     # start to run simulations
     print "fitting the overall normalization factor ..."
-    norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
+    #norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
+    norm_factor = 1.0
     if mode == 'hydro':
         print "running pure hydro simulations for all centralities ..."
         run_purehydro_all_centralities(model, ecm, norm_factor,
