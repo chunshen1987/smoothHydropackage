@@ -4,13 +4,31 @@ import shutil
 from os import path, makedirs, remove
 import subprocess
 from glob import glob
+import numpy as np
 
 import sys
 
-
+# centrality list
 cen_list = ['0-5', '5-10', '10-20', '20-30', '30-40',
             '40-50', '50-60', '60-70', '70-80']
 
+# charged multiplicity for 0-5% centrality
+dn_deta_dict = {'5500.0' : 1974.234,
+                '2760.0' : 1601,
+                '200.0'  : 691,
+                '62.4'   : 472,}
+
+class color:
+   purple = '\033[95m'
+   cyan = '\033[96m'
+   darkcyan = '\033[36m'
+   blue = '\033[94m'
+   green = '\033[92m'
+   yellow = '\033[93m'
+   red = '\033[91m'
+   bold = '\033[1m'
+   underline = '\033[4m'
+   end = '\033[0m'
 
 def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
                       norm_factor, vis, edec, tau0):
@@ -204,27 +222,71 @@ def run_hybrid_all_centralities(norm_factor, vis, edec, tau0):
     shutil.move(path.join('.', err_record_file_name), 'results')
 
 
+def print_help_message():
+    print "Usage : "
+    print "./runHydro.py -ecm ecm [-mode mode -vis vis -Edec edec -tau0 tau0]"
+    print "Usage of runHydro.py command line arguments: "
+    print(color.bold + "-mode" + color.end + "  the simulation type: "
+          + color.purple + " hydro, hybrid" + color.end)
+    print(color.bold + "-vis" + color.end
+          + "   the specific shear viscosity used in the hydro simulation")
+    print(color.bold + "-Edec" + color.end
+          + "  the decoupling energy density used in the hydro simulation")
+    print(color.bold + "-tau0" + color.end
+          + "  the hydrodynamic starting proper time")
+    print(color.bold + "-h | -help" + color.end + "    This message")
+
 if __name__ == "__main__":
     vis = 0.08
     edec = 0.18  # GeV/fm^3
     tau0 = 0.6  # fm/c
+    mode = 'hydro'
     while len(sys.argv) > 1:
         option = sys.argv[1]
         del sys.argv[1]
         if option == '-vis':
             vis = float(sys.argv[1])
             del sys.argv[1]
-        elif option == '-edec':
+        elif option == '-Edec':
             edec = float(sys.argv[1])
             del sys.argv[1]
         elif option == '-tau0':
             tau0 = float(sys.argv[1])
             del sys.argv[1]
-        elif option == '-dNdeta':
-            dN_deta = float(sys.argv[1])
+        elif option == '-ecm':
+            ecm = float(sys.argv[1])
             del sys.argv[1]
+        elif option == '-mode':
+            ecm = sys.argv[1]
+            del sys.argv[1]
+        elif option == '-h':
+            print_help_message()
+            sys.exit(0)
         else:
             print sys.argv[0], ': invalid option', option
+            print_help_message()
             sys.exit(1)
+    try:
+        ecm_string = '%.1f' % ecm
+    except:
+        print_help_message()
+        sys.exit(1)
+
+    # get dN/deta from the collision energy
+    if ecm < 62.4:
+        dN_deta = 312.5*np.log10(ecm) - 64.8
+    elif ecm_string in dn_deta_dict.keys():
+        dN_deta = dn_deta_dict[ecm_string]
+    else:
+        print sys.argv[0], ': invalid collision energy', ecm
+        sys.exit(1)
+
+    # start to run simulations
     norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
-    run_purehydro_all_centralities(norm_factor, vis, edec, tau0)
+    if mode == 'hydro':
+        run_purehydro_all_centralities(norm_factor, vis, edec, tau0)
+    elif mode == 'hybrid':
+        run_hybrid_all_centralities(norm_factor, vis, edec, tau0)
+    else:
+        print sys.argv[0], ': invalid running mode', mode
+        sys.exit(1)
