@@ -48,7 +48,8 @@ def run_hybrid_calculation(icen, hydro_path, iSS_path, run_record, err_record,
     """
         Perform hydro + UrQMD hybrid approach on averaged initial conditions
     """
-    result_folder = 'MCGlbRHICVis008C%sT120Tau6' % cen_list[icen]
+    result_folder = ('MCGlbRHICVis%gC%sEdec%gTau%g'
+                     % (vis, cen_list[icen], edec, tau0))
     results_folder_path = path.join(path.abspath('./results'), result_folder)
     if path.exists(results_folder_path):
         shutil.rmtree(results_folder_path)
@@ -160,8 +161,8 @@ def fit_hydro(dNdeta_goal, vis, edec, tau0):
             dNdeta_goal, dN_deta, norm_factor,)
         sys.stdout.flush()
         shutil.rmtree(path.join(iS_path, 'results'))
-        if abs(dNdeta - dNdeta_goal) / dNdeta_goal > tol:
-            norm_factor = norm_factor * dNdeta_goal / dNdeta
+        if abs(dN_deta - dNdeta_goal) / dNdeta_goal > tol:
+            norm_factor = norm_factor * dNdeta_goal / dN_deta
         else:
             break
     shutil.move(path.join('.', run_record_file_name),
@@ -171,7 +172,7 @@ def fit_hydro(dNdeta_goal, vis, edec, tau0):
     return norm_factor
 
 
-def run_hydro_all_centralities(norm_factor, vis, edec, tau0):
+def run_purehydro_all_centralities(norm_factor, vis, edec, tau0):
     run_record_file_name = 'run_record_hydrowithiS.dat'
     err_record_file_name = 'err_record_hydrowithiS.dat'
     run_record = open(path.join('.', run_record_file_name), 'a')
@@ -184,6 +185,21 @@ def run_hydro_all_centralities(norm_factor, vis, edec, tau0):
         shutil.move(path.join(iS_path, 'results'),
                     path.join('results', 'MCGlbRHICVis008C%sT120Tau6_sd_v2'
                               % cen_list[icen]))
+    shutil.move(path.join('.', run_record_file_name), 'results')
+    shutil.move(path.join('.', err_record_file_name), 'results')
+
+
+def run_hybrid_all_centralities(norm_factor, vis, edec, tau0):
+    run_record_file_name = 'run_record_hybrid.dat'
+    err_record_file_name = 'err_record_hybrid.dat'
+    run_record = open(path.join('.', run_record_file_name), 'a')
+    err_record = open(path.join('.', err_record_file_name), 'a')
+    hydro_path = path.abspath('./VISHNew')
+    iSS_path = path.abspath('./iSS')
+    for icen in range(len(cen_list)):
+        run_hybrid_calculation(icen, hydro_path, iSS_path,
+                               run_record, err_record,
+                               norm_factor, vis, edec, tau0)
     shutil.move(path.join('.', run_record_file_name), 'results')
     shutil.move(path.join('.', err_record_file_name), 'results')
 
@@ -211,4 +227,4 @@ if __name__ == "__main__":
             print sys.argv[0], ': invalid option', option
             sys.exit(1)
     norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
-    run_hydro_all_centralities(norm_factor, vis, edec, tau0)
+    run_purehydro_all_centralities(norm_factor, vis, edec, tau0)
