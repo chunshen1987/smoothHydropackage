@@ -32,6 +32,7 @@ class color:
 
 def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
                       norm_factor, vis, edec, tau0):
+    initial_path = 'RESULTS/initial_conditions'
     # hydro
     if path.exists(path.join(hydro_path, 'results')):
         shutil.rmtree(path.join(hydro_path, 'results'))
@@ -40,7 +41,8 @@ def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
     args = (' IINIT=2 IEOS=7 iEin=1 iLS=130'
             + ' T0=%6.4f edec=%7.5f vis=%6.4f factor=%11.9f'
             % (tau0, edec, vis, norm_factor,))
-    shutil.copyfile('./results/sdAvg_order_2_C%s.dat' % cen_list[icen],
+    shutil.copyfile('./%s/sdAvg_order_2_C%s.dat'
+                    % (initial_path, cen_list[icen]),
                     path.join(hydro_path, 'Initial', 'InitialSd.dat'))
     print "%s : %s" % (cen_list[icen], cmd + args)
     sys.stdout.flush()
@@ -66,7 +68,8 @@ def run_hybrid_calculation(icen, hydro_path, iSS_path, run_record, err_record,
     """
         Perform hydro + UrQMD hybrid approach on averaged initial conditions
     """
-    result_folder = ('MCGlbRHICVis%gC%sEdec%gTau%g'
+    initial_path = 'RESULTS/initial_conditions'
+    result_folder = ('Vis%gC%sEdec%gTau%g'
                      % (vis, cen_list[icen], edec, tau0))
     results_folder_path = path.join(path.abspath('./results'), result_folder)
     if path.exists(results_folder_path):
@@ -81,7 +84,8 @@ def run_hybrid_calculation(icen, hydro_path, iSS_path, run_record, err_record,
     args = (' IINIT=2 IEOS=7 iEin=1 iLS=130 '
             + 'T0=%6.4f edec=%7.5f vis=%6.4f factor=%11.9f'
             % (tau0, edec, vis, norm_factor,))
-    shutil.copyfile('./results/sdAvg_order_2_C%s.dat' % cen_list[icen],
+    shutil.copyfile('./%s/sdAvg_order_2_C%s.dat'
+                    % (initial_path, cen_list[icen]),
                     path.join(hydro_path, 'Initial', 'InitialSd.dat'))
     print "%s : %s" % (cen_list[icen], cmd + args)
     sys.stdout.flush()
@@ -222,12 +226,44 @@ def run_hybrid_all_centralities(norm_factor, vis, edec, tau0):
     shutil.move(path.join('.', err_record_file_name), 'results')
 
 
+def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0):
+    print('%s mode: %s sqrt{s} = %s A GeV' % (mode, model, ecm))
+    print('eta/s = %g, Edec = %g GeV/fm^3, tau0 = %g fm/c' % (vis, edec, tau0))
+
+    # initial setup
+    result_folder_path = './RESULTS'
+    if path.exists(result_folder_path):
+        shutil.rmtree(result_folder_path)
+    makedirs(result_folder_path)
+    initial_condition_name = '%s%.0f_sigmaNN_gauss_d0.4' % (model, ecm)
+    shutil.copytree(path.join('./initial_conditions', initial_condition_name),
+                    path.join(result_folder_path, 'initial_conditions'))
+
+    # start to run simulations
+    print "fitting the overall normalization factor ..."
+    norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
+    if mode == 'hydro':
+        print "running pure hydro simulations for all centralities ..."
+        run_purehydro_all_centralities(norm_factor, vis, edec, tau0)
+    elif mode == 'hybrid':
+        print "running hybrid simulations for all centralities ..."
+        run_hybrid_all_centralities(norm_factor, vis, edec, tau0)
+    else:
+        print sys.argv[0], ': invalid running mode', mode
+        sys.exit(1)
+
+
 def print_help_message():
     print "Usage : "
-    print "./runHydro.py -ecm ecm [-mode mode -vis vis -Edec edec -tau0 tau0]"
+    print(color.bold 
+          + "./runHydro.py -ecm ecm "
+          + "[-mode mode -model model -vis vis -Edec edec -tau0 tau0]"
+          + color.end)
     print "Usage of runHydro.py command line arguments: "
     print(color.bold + "-mode" + color.end + "  the simulation type: "
           + color.purple + " hydro, hybrid" + color.end)
+    print(color.bold + "-model" + color.end + "  the simulation type: "
+          + color.purple + " MCGlb, MCKLN" + color.end)
     print(color.bold + "-vis" + color.end
           + "   the specific shear viscosity used in the hydro simulation")
     print(color.bold + "-Edec" + color.end
@@ -241,6 +277,7 @@ if __name__ == "__main__":
     edec = 0.18  # GeV/fm^3
     tau0 = 0.6  # fm/c
     mode = 'hydro'
+    model = 'MCGlb'
     while len(sys.argv) > 1:
         option = sys.argv[1]
         del sys.argv[1]
@@ -250,6 +287,9 @@ if __name__ == "__main__":
         elif option == '-Edec':
             edec = float(sys.argv[1])
             del sys.argv[1]
+        elif option == '-model':
+            model = str(sys.argv[1])
+            del sys.argv[1]
         elif option == '-tau0':
             tau0 = float(sys.argv[1])
             del sys.argv[1]
@@ -257,7 +297,7 @@ if __name__ == "__main__":
             ecm = float(sys.argv[1])
             del sys.argv[1]
         elif option == '-mode':
-            ecm = sys.argv[1]
+            mode = str(sys.argv[1])
             del sys.argv[1]
         elif option == '-h':
             print_help_message()
@@ -266,6 +306,7 @@ if __name__ == "__main__":
             print sys.argv[0], ': invalid option', option
             print_help_message()
             sys.exit(1)
+
     try:
         ecm_string = '%.1f' % ecm
     except:
@@ -281,12 +322,9 @@ if __name__ == "__main__":
         print sys.argv[0], ': invalid collision energy', ecm
         sys.exit(1)
 
-    # start to run simulations
-    norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
-    if mode == 'hydro':
-        run_purehydro_all_centralities(norm_factor, vis, edec, tau0)
-    elif mode == 'hybrid':
-        run_hybrid_all_centralities(norm_factor, vis, edec, tau0)
+    if mode in ['hydro', 'hybrid']:
+        run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0)
     else:
         print sys.argv[0], ': invalid running mode', mode
+        print_help_message()
         sys.exit(1)
