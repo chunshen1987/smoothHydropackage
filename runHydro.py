@@ -240,7 +240,7 @@ def run_purehydro_all_centralities(model, ecm, norm_factor, vis, edec, tau0,
             run_hydro_with_iS(icen, hydro_path, iS_path,
                               run_record, err_record,
                               norm_factor, vis, edec, tau0)
-            shutil.move(path.join(hydro_path, 'results'),
+            shutil.move(path.join(iS_path, 'results'),
                         path.join('RESULTS',
                                   '%s%.0fVis%gC%sEdec%gTau%g_hydroOnly'
                                   % (model, ecm, vis, cen_list[icen],
@@ -248,7 +248,7 @@ def run_purehydro_all_centralities(model, ecm, norm_factor, vis, edec, tau0,
         else:
             run_hydro_evo(icen, hydro_path, run_record, err_record,
                           norm_factor, vis, edec, tau0)
-            shutil.move(path.join(iS_path, 'results'),
+            shutil.move(path.join(hydro_path, 'results'),
                         path.join('RESULTS', '%s%.0fVis%gC%sEdec%gTau%g'
                                   % (model, ecm, vis, cen_list[icen],
                                      edec, tau0)))
@@ -387,10 +387,10 @@ if __name__ == "__main__":
             mode = str(sys.argv[1])
             del sys.argv[1]
         elif option == '-cf_flag':
-            mode = bool(sys.argv[1])
+            cf_flag = (sys.argv[1] == 'True')
             del sys.argv[1]
         elif option == '-fit_flag':
-            mode = bool(sys.argv[1])
+            fit_flag = (sys.argv[1] == 'True')
             del sys.argv[1]
         elif option == '-h':
             print_help_message()
