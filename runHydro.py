@@ -20,6 +20,9 @@ dn_deta_dict = {'5500.0': 1974.234,
 
 
 class color:
+    """
+    define colors in the terminal
+    """
     purple = '\033[95m'
     cyan = '\033[96m'
     darkcyan = '\033[36m'
@@ -31,9 +34,8 @@ class color:
     underline = '\033[4m'
     end = '\033[0m'
 
-
-def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
-                      norm_factor, vis, edec, tau0):
+def run_hydro_evo(icen, hydro_path, run_record, err_record,
+                  norm_factor, vis, edec, tau0):
     """
         Perform pure hydro simulations with averaged initial conditions
     """
@@ -55,6 +57,15 @@ def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
     p = subprocess.Popen(cmd + args, shell=True, stdout=run_record,
                          stderr=err_record, cwd=hydro_path)
     p.wait()
+
+def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
+                      norm_factor, vis, edec, tau0):
+    """
+        Perform pure hydro simulations + Cooper Frye freeze-out
+        with averaged initial conditions
+    """
+    run_hydro_evo(icen, hydro_path, run_record, err_record,
+                  norm_factor, vis, edec, tau0)
     # iS
     if path.exists(path.join(iS_path, 'results')):
         shutil.rmtree(path.join(iS_path, 'results'))
@@ -213,7 +224,11 @@ def fit_hydro(dNdeta_goal, vis, edec, tau0):
     return norm_factor
 
 
-def run_purehydro_all_centralities(model, ecm, norm_factor, vis, edec, tau0):
+def run_purehydro_all_centralities(model, ecm, norm_factor, vis, edec, tau0,
+                                   cf_flag):
+    """
+    shell function to run pure hydrodynamic simulation for all centrality bins
+    """
     run_record_file_name = 'run_record_hydrowithiS.dat'
     err_record_file_name = 'err_record_hydrowithiS.dat'
     run_record = open(path.join('.', run_record_file_name), 'a')
@@ -221,16 +236,30 @@ def run_purehydro_all_centralities(model, ecm, norm_factor, vis, edec, tau0):
     hydro_path = path.abspath('./VISHNew')
     iS_path = path.abspath('./iS')
     for icen in range(len(cen_list)):
-        run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
+        if cf_flag:
+            run_hydro_with_iS(icen, hydro_path, iS_path,
+                              run_record, err_record,
+                              norm_factor, vis, edec, tau0)
+            shutil.move(path.join(hydro_path, 'results'),
+                        path.join('RESULTS',
+                                  '%s%.0fVis%gC%sEdec%gTau%g_hydroOnly'
+                                  % (model, ecm, vis, cen_list[icen],
+                                     edec, tau0)))
+        else:
+            run_hydro_evo(icen, hydro_path, run_record, err_record,
                           norm_factor, vis, edec, tau0)
-        shutil.move(path.join(iS_path, 'results'),
-                    path.join('RESULTS', '%s%.0fVis%gC%sEdec%gTau%g'
-                              % (model, ecm, vis, cen_list[icen], edec, tau0)))
+            shutil.move(path.join(iS_path, 'results'),
+                        path.join('RESULTS', '%s%.0fVis%gC%sEdec%gTau%g'
+                                  % (model, ecm, vis, cen_list[icen],
+                                     edec, tau0)))
     shutil.move(path.join('.', run_record_file_name), 'RESULTS')
     shutil.move(path.join('.', err_record_file_name), 'RESULTS')
 
 
 def run_hybrid_all_centralities(model, ecm, norm_factor, vis, edec, tau0):
+    """
+    shell function for running hybrid calculations for all centrality bins.
+    """
     run_record_file_name = 'run_record_hybrid.dat'
     err_record_file_name = 'err_record_hybrid.dat'
     run_record = open(path.join('.', run_record_file_name), 'a')
@@ -245,7 +274,19 @@ def run_hybrid_all_centralities(model, ecm, norm_factor, vis, edec, tau0):
     shutil.move(path.join('.', err_record_file_name), 'RESULTS')
 
 
-def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0):
+def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, cf_flag):
+    """
+    shell function to run simulations
+    :param mode: simulation mode: hydro or hybrid
+    :param model: initial condition model
+    :param ecm: collision energy
+    :param dN_deta: final charged multiplicity
+    :param vis: the specific shear viscosity
+    :param edec: the decoupling energy density
+    :param tau0: the starting time of hydrodynamic simulation
+    :param cf_flag: switch for Cooper-Frye freeze-out
+    :return: none
+    """
     print('%s mode: %s sqrt{s} = %s A GeV' % (mode, model, ecm))
     print('eta/s = %g, Edec = %g GeV/fm^3, tau0 = %g fm/c' % (vis, edec, tau0))
 
@@ -260,12 +301,11 @@ def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0):
 
     # start to run simulations
     print "fitting the overall normalization factor ..."
-    #norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
-    norm_factor = 1.0
+    norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
     if mode == 'hydro':
         print "running pure hydro simulations for all centralities ..."
         run_purehydro_all_centralities(model, ecm, norm_factor,
-                                       vis, edec, tau0)
+                                       vis, edec, tau0, cf_flag)
     elif mode == 'hybrid':
         print "running hybrid simulations for all centralities ..."
         run_hybrid_all_centralities(model, ecm, norm_factor, vis, edec, tau0)
@@ -278,7 +318,8 @@ def print_help_message():
     print "Usage : "
     print(color.bold
           + "./runHydro.py -ecm ecm "
-          + "[-mode mode -model model -vis vis -Edec edec -tau0 tau0]"
+          + "[-mode mode -model model -vis vis -Edec edec -tau0 tau0 "
+          + "-cf_flag cf_flag]"
           + color.end)
     print "Usage of runHydro.py command line arguments: "
     print(color.bold + "-ecm" + color.end
@@ -299,15 +340,22 @@ def print_help_message():
     print(color.bold + "-tau0" + color.end
           + "  the hydrodynamic starting proper time (fm/c) \n"
           + color.bold + "       tau0 = 0.6 fm/c [default]" + color.end)
+    print(color.bold + "-cf_flag" + color.end
+          + "  switch whether to perfrom Cooper-Frye freeze-out "
+          + "in pure hydro simulation \n"
+          + color.bold + "          cf_flag = True [default]" + color.end)
     print(color.bold + "-h | -help" + color.end + "    This message")
 
 
 if __name__ == "__main__":
+    # set default values
     vis = 0.08
     edec = 0.18  # GeV/fm^3
     tau0 = 0.6  # fm/c
     mode = 'hydro'
     model = 'MCGlb'
+    cf_flag = True
+
     while len(sys.argv) > 1:
         option = sys.argv[1]
         del sys.argv[1]
@@ -328,6 +376,9 @@ if __name__ == "__main__":
             del sys.argv[1]
         elif option == '-mode':
             mode = str(sys.argv[1])
+            del sys.argv[1]
+        elif option == '-cf_flag':
+            mode = bool(sys.argv[1])
             del sys.argv[1]
         elif option == '-h':
             print_help_message()
@@ -353,7 +404,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if mode in ['hydro', 'hybrid']:
-        run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0)
+        run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, cf_flag)
     else:
         print sys.argv[0], ': invalid running mode', mode
         print_help_message()
