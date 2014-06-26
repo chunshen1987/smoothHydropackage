@@ -281,18 +281,24 @@ def print_help_message():
           + "[-mode mode -model model -vis vis -Edec edec -tau0 tau0]"
           + color.end)
     print "Usage of runHydro.py command line arguments: "
-    print(color.bold + "-mode" + color.end + "  the simulation type: "
-          + color.purple + " hydro, hybrid" + color.end)
-    print(color.bold + "-model" + color.end + " initial condition model: "
-          + color.purple + " MCGlb, MCKLN" + color.end)
     print(color.bold + "-ecm" + color.end
-          + "   collision energy")
+          + "   collision energy (GeV)")
+    print(color.bold + "-mode" + color.end + "  the simulation type: "
+          + color.purple + color.bold + " hydro[default]" + color.end
+          + color.purple + ", hybrid" + color.end)
+    print(color.bold + "-model" + color.end + " initial condition model: "
+          + color.purple + color.bold + " MCGlb[default]" + color.end
+          + color.purple + ", MCKLN" + color.end)
     print(color.bold + "-vis" + color.end
-          + "   the specific shear viscosity used in the hydro simulation")
+          + "   the specific shear viscosity used in the hydro simulation\n"
+          + color.bold + "       eta/s = 0.08 [default]" + color.end)
     print(color.bold + "-Edec" + color.end
-          + "  the decoupling energy density used in the hydro simulation")
+          + "  the decoupling energy density (GeV/fm^3) used in the "
+          + "hydro simulation\n"
+          + color.bold + "       Edec = 0.18 GeV/fm^3 [default]" + color.end)
     print(color.bold + "-tau0" + color.end
-          + "  the hydrodynamic starting proper time")
+          + "  the hydrodynamic starting proper time (fm/c) \n"
+          + color.bold + "       tau0 = 0.6 fm/c [default]" + color.end)
     print(color.bold + "-h | -help" + color.end + "    This message")
 
 
