@@ -274,7 +274,8 @@ def run_hybrid_all_centralities(model, ecm, norm_factor, vis, edec, tau0):
     shutil.move(path.join('.', err_record_file_name), 'RESULTS')
 
 
-def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, cf_flag):
+def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0,
+                    cf_flag, fit_flag):
     """
     shell function to run simulations
     :param mode: simulation mode: hydro or hybrid
@@ -300,8 +301,11 @@ def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, cf_flag):
                     path.join(result_folder_path, 'initial_conditions'))
 
     # start to run simulations
-    print "fitting the overall normalization factor ..."
-    norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
+    if fit_flag:
+        print "fitting the overall normalization factor ..."
+        norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
+    else:
+        norm_factor = float(input("Please input the normalization factor: "))
     if mode == 'hydro':
         print "running pure hydro simulations for all centralities ..."
         run_purehydro_all_centralities(model, ecm, norm_factor,
@@ -319,7 +323,7 @@ def print_help_message():
     print(color.bold
           + "./runHydro.py -ecm ecm "
           + "[-mode mode -model model -vis vis -Edec edec -tau0 tau0 "
-          + "-cf_flag cf_flag]"
+          + "-cf_flag cf_flag -fit_flag fit_flag]"
           + color.end)
     print "Usage of runHydro.py command line arguments: "
     print(color.bold + "-ecm" + color.end
@@ -341,9 +345,13 @@ def print_help_message():
           + "  the hydrodynamic starting proper time (fm/c) \n"
           + color.bold + "       tau0 = 0.6 fm/c [default]" + color.end)
     print(color.bold + "-cf_flag" + color.end
-          + "  switch whether to perfrom Cooper-Frye freeze-out "
+          + "   switch to perfrom Cooper-Frye freeze-out "
           + "in pure hydro simulation \n"
-          + color.bold + "          cf_flag = True [default]" + color.end)
+          + color.bold + "           cf_flag = True [default]" + color.end)
+    print(color.bold + "-fit_flag" + color.end
+          + "  switch to perfrom fit for normalization factor "
+          + "to charged multiplicity before the simulation \n"
+          + color.bold + "           fit_flag = True [default]" + color.end)
     print(color.bold + "-h | -help" + color.end + "    This message")
 
 
@@ -355,6 +363,7 @@ if __name__ == "__main__":
     mode = 'hydro'
     model = 'MCGlb'
     cf_flag = True
+    fit_flag = True
 
     while len(sys.argv) > 1:
         option = sys.argv[1]
@@ -378,6 +387,9 @@ if __name__ == "__main__":
             mode = str(sys.argv[1])
             del sys.argv[1]
         elif option == '-cf_flag':
+            mode = bool(sys.argv[1])
+            del sys.argv[1]
+        elif option == '-fit_flag':
             mode = bool(sys.argv[1])
             del sys.argv[1]
         elif option == '-h':
@@ -404,7 +416,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if mode in ['hydro', 'hybrid']:
-        run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, cf_flag)
+        run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0,
+                        cf_flag, fit_flag)
     else:
         print sys.argv[0], ': invalid running mode', mode
         print_help_message()
