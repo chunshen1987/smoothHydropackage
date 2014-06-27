@@ -3,6 +3,7 @@
 import pylab as plt
 from numpy import *
 import sys
+from glob import glob
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from os import path
 from CSplottools import getPlotElements
@@ -11,6 +12,8 @@ centrality_name = ['0_5', '5_10', '10_20', '20_30', '30_40',
                    '40_50', '50_60', '60_70']
 centrality_name_th = ['0005', '0510', '1020', '2030', '3040',
                       '4050', '5060', '6070']
+centrality_name_theory = ['0-5', '5-10', '10-20', '20-30', '30-40',
+                          '40-50', '50-60', '60-70', '70-80']
 centrality_label = ['0-5%', '5-10%', '10-20%', '20-30%', '30-40%',
                     '40-50%', '50-60%', '60-70%']
 
@@ -59,7 +62,12 @@ def plot_diffv2_charged_vs_ATLAS(folder_path, icen):
                  label='ATLAS data $v_2\{2\}$')
 
     # theory curves
-
+    th_data = loadtxt(
+        glob(path.join(folder_path, '*C%s*/Charged_vndata.dat'
+                       % centrality_name_theory[icen]))[0])
+    plt.plot(th_data[:, 0], th_data[:, 8],
+             color=plotColor, linestyle=plotlinestyle,
+             linewidth=plotLinewidth, marker='', markersize=plotMarkerSize)
 
     plt.plot([0, 10], [0, 0], 'k--', linewidth=plotLinewidth)
     hl = plt.legend(loc=2, fontsize=plotfontsize - 3)
@@ -105,6 +113,15 @@ def plot_pid_diffv2_vs_ALICE(folder_path, icen):
                      marker=plotMarker, markersize=plotMarkerSize,
                      label=particle_lable[ipart])
         # theory curves
+        th_particle_name_list = ['pion_p', 'Kaon_p', 'proton']
+        th_data = loadtxt(
+            glob(path.join(folder_path,
+                           '*C%s*/%s_vndata.dat'
+                           % (centrality_name_theory[icen],
+                              th_particle_name_list[ipart])))[0])
+        plt.plot(th_data[:, 0], th_data[:, 8],
+                 color=plotColor, linestyle=plotlinestyle,
+                 linewidth=plotLinewidth, marker='', markersize=plotMarkerSize)
 
         iplot += 1
     # plt.plot([0, 10], [0, 0], 'k--', linewidth = plotLinewidth)
@@ -148,7 +165,19 @@ def plot_vn_vs_cen_ALICE(folder_path):
                  label=r'ALICE $v_2\{\mathrm{SP}\}$ data')
 
     #theory
-
+    cen_th = array([2.5, 7.5, 15, 25, 35, 45, 55, 65, 75])
+    v2_th = []
+    for icen in range(len(centrality_name_theory)):
+        temp_data = loadtxt(
+            glob(path.join(folder_path,
+                           '*C%s*/Charged_ptcut02_integrated_vndata.dat'
+                           % centrality_name_theory[icen]))[0])
+        v2_th.append(temp_data[2, 5])
+    v2_th = array(v2_th)
+    plt.plot(cen_th, v2_th, color=plotColor, linestyle=plotlinestyle,
+             linewidth=plotLinewidth,
+             marker='', markersize=plotMarkerSize,
+             label=r'theory $\bar{v}_2$')
 
     hl = plt.legend(loc=2, fontsize=plotfontsize - 3)
     hl.draw_frame(False)
@@ -192,6 +221,15 @@ def plot_pidspectra_vs_ALICE(folder_path, icen):
                      marker=plotMarker, markersize=plotMarkerSize,
                      label=particle_lable[ipart])
         # theory curves
+        th_particle_name_list = ['pion_p', 'Kaon_p', 'proton']
+        th_data = loadtxt(
+            glob(path.join(folder_path,
+                           '*C%s*/%s_vndata.dat'
+                           % (centrality_name_theory[icen],
+                              th_particle_name_list[ipart])))[0])
+        plt.plot(th_data[:, 0], th_data[:, 2],
+                 color=plotColor, linestyle=plotlinestyle,
+                 linewidth=plotLinewidth, marker='', markersize=plotMarkerSize)
 
         iplot += 1
     # plt.plot([0, 10], [0, 0], 'k--', linewidth = plotLinewidth)
@@ -216,9 +254,13 @@ def plot_pidspectra_vs_ALICE(folder_path, icen):
 
 
 def make_LHC2760_comparisons(folder_path):
-
+    """
+    Generate comparisons for Pb+Pb collisions at 2.76 A TeV
+    """
+    # pT-integrated flow
     plot_vn_vs_cen_ALICE(folder_path)
 
+    # pT-differential flow and spectra
     for icen in range(8):
         plot_diffv2_charged_vs_ATLAS(folder_path, icen)
         plot_pidspectra_vs_ALICE(folder_path, icen)
