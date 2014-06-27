@@ -11,7 +11,7 @@ from CSplottools import getPlotElements
 centrality_name = ['0_5', '5_10', '10_20', '20_30', '30_40',
                    '40_50', '50_60', '60_70']
 centrality_name_th = ['0005', '0510', '1020', '2030', '3040',
-                      '4050', '5060', '6070']
+                      '4050', '5060', '6070', '7080']
 centrality_name_theory = ['0-5', '5-10', '10-20', '20-30', '30-40',
                           '40-50', '50-60', '60-70', '70-80']
 centrality_label = ['0-5%', '5-10%', '10-20%', '20-30%', '30-40%',
@@ -305,6 +305,304 @@ def plot_pidspectra_vs_ALICE(folder_path, icen):
     plt.close()
     #plt.show()
 
+def plot_multiplicity_vs_cen_PHOBOS(folder_path):
+    # exp data
+    expdata_path = path.abspath(
+        path.join(exp_path, 'RHIC200', 'PHOBOS'))
+    dn_exp = loadtxt(path.join(expdata_path, 'dNdeta_Npart.dat'))
+
+    fig = plt.figure()
+    plt.axes([0.15, 0.13, 0.8, 0.82])
+    iplot = 0
+
+    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+        getPlotElements(iplot))
+    iplot += 1
+    plt.errorbar(dn_exp[:, 0], dn_exp[:, 2], xerr=dn_exp[:, 1],
+                 yerr=dn_exp[:, 3], color=plotColor, linestyle='none',
+                 linewidth=plotLinewidth,
+                 marker=plotMarker, markersize=plotMarkerSize,
+                 label=r'PHOBOS data')
+
+    #theory
+    temp_data = loadtxt(path.join(folder_path, 'initial_conditions',
+                                  'centralityCut_total_entropy.dat'))
+    npart_th = temp_data[:,1]
+    dn_th = []
+    for icen in range(len(centrality_name_theory)):
+        temp_data = loadtxt(
+            glob(path.join(folder_path,
+                           '*C%s*/Charged_eta_integrated_vndata.dat'
+                           % centrality_name_theory[icen]))[0])
+        dn_th.append(temp_data[0, 1])
+    dn_th = array(dn_th)
+    plt.plot(npart_th, dn_th/(npart_th/2.),
+             color=plotColor, linestyle=plotlinestyle, linewidth=plotLinewidth,
+             marker='', markersize=plotMarkerSize,
+             label=r'theory')
+
+    hl = plt.legend(loc=2, fontsize=plotfontsize - 3)
+    hl.draw_frame(False)
+    plt.xlim([0, 400])
+    plt.ylim([2, 4.5])
+    plt.xticks(linspace(0, 400, 9), color='k', size=plotfontsize)
+    plt.yticks(color='k', size=plotfontsize)
+    #minorLocator = MultipleLocator(0.1)
+    #ax.xaxis.set_minor_locator(minorLocator)
+    plt.xlabel(r'$N_\mathrm{part}$', {'fontsize': plotfontsize + 5})
+    plt.ylabel(r'$dN^\mathrm{ch}/d\eta/(N_\mathrm{part}/2)$',
+               {'fontsize': plotfontsize + 5})
+    plt.savefig(path.expanduser('~/Desktop/multiplicity_vs_cen_PHOBOS.pdf'),
+                format='pdf')
+    plt.close()
+    #plt.show()
+
+
+def plot_vn_vs_cen_STAR(folder_path):
+    # exp data
+    expdata_path = path.abspath(
+        path.join(exp_path, 'RHIC200', 'STAR_v2_4'))
+    v2_EP_exp = loadtxt(path.join(expdata_path, 'STARv2EP.dat'))
+    v2_4_exp = loadtxt(path.join(expdata_path, 'v2int_4star.dat'))
+
+    fig = plt.figure()
+    plt.axes([0.15, 0.13, 0.8, 0.82])
+
+    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+        getPlotElements(0))
+    plt.errorbar(v2_EP_exp[:, 0], v2_EP_exp[:, 1], v2_EP_exp[:, 2],
+                 color=plotColor, linestyle='none',
+                 linewidth=plotLinewidth,
+                 marker=plotMarker, markersize=plotMarkerSize,
+                 label=r'STAR $v_2\{\mathrm{EP}\}$ data')
+    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+        getPlotElements(1))
+    plt.errorbar(v2_4_exp[:, 0], v2_4_exp[:, 1], v2_4_exp[:, 2],
+                 color=plotColor, linestyle='none',
+                 linewidth=plotLinewidth,
+                 marker=plotMarker, markersize=plotMarkerSize,
+                 label=r'STAR $v_2\{\mathrm{4}\}$ data')
+
+    #theory
+    cen_th = array([2.5, 7.5, 15, 25, 35, 45, 55, 65, 75])
+    v2_th = []
+    for icen in range(len(centrality_name_theory)):
+        temp_data = loadtxt(
+            glob(path.join(folder_path,
+                           '*C%s*/Charged_ptcut02_integrated_vndata.dat'
+                           % centrality_name_theory[icen]))[0])
+        v2_th.append(temp_data[2, 5])
+    v2_th = array(v2_th)
+    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+        getPlotElements(0))
+    plt.plot(cen_th, v2_th, color=plotColor, linestyle=plotlinestyle,
+             linewidth=plotLinewidth,
+             marker='', markersize=plotMarkerSize,
+             label=r'theory $\bar{v}_2$')
+
+    hl = plt.legend(loc=2, fontsize=plotfontsize - 3)
+    hl.draw_frame(False)
+    plt.xlim([0, 70])
+    plt.ylim([0.0, 0.12])
+    plt.xticks(linspace(0, 70, 8), color='k', size=plotfontsize)
+    plt.yticks(color='k', size=plotfontsize)
+    #minorLocator = MultipleLocator(0.1)
+    #ax.xaxis.set_minor_locator(minorLocator)
+    plt.xlabel(r'Centrality (%)', {'fontsize': plotfontsize + 5})
+    plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
+    plt.savefig(path.expanduser('~/Desktop/v2_vs_cen_STAR.pdf'),
+                format='pdf')
+    plt.close()
+    #plt.show()
+
+
+def plot_diffv2_charged_vs_RHIC(folder_path, icen):
+    star_data_path = path.abspath(path.join(exp_path, 'RHIC200', 'STAR_v2_4'))
+    phenix_data_path = path.abspath(
+        path.join(exp_path, 'RHIC200', 'PHENIX/v2'))
+
+    fig = plt.figure()
+    ax = plt.axes([0.15, 0.13, 0.8, 0.82])
+
+    # exp data
+    star_v2_4_data = loadtxt(
+        path.join(star_data_path, 'v2_4_%s.dat' % (centrality_name_th[icen])))
+    phenix_v2_data = loadtxt(
+        path.join(phenix_data_path, 'CHv2ptBBC2subevent%s'
+                  % (centrality_name_th[icen])))
+    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+        getPlotElements(0))
+    plt.errorbar(star_v2_4_data[:, 0], star_v2_4_data[:, 1],
+                 yerr=star_v2_4_data[:, 2],
+                 color=plotColor, linestyle='none',
+                 linewidth=plotLinewidth,
+                 marker=plotMarker, markersize=plotMarkerSize,
+                 label='STAR data $v_2\{4\}$')
+    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+        getPlotElements(1))
+    plt.errorbar(phenix_v2_data[:, 0], phenix_v2_data[:, 1],
+                 yerr=sqrt(phenix_v2_data[:, 2]**2 + phenix_v2_data[:, 3]**2),
+                 color=plotColor, linestyle='none',
+                 linewidth=plotLinewidth,
+                 marker=plotMarker, markersize=plotMarkerSize,
+                 label='PHENIX BBC $v_2$')
+
+    # theory curves
+    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+        getPlotElements(0))
+    th_data = loadtxt(
+        glob(path.join(folder_path, '*C%s*/Charged_vndata.dat'
+                       % centrality_name_theory[icen]))[0])
+    plt.plot(th_data[:, 0], th_data[:, 8],
+             color=plotColor, linestyle=plotlinestyle,
+             linewidth=plotLinewidth, marker='', markersize=plotMarkerSize)
+
+    plt.plot([0, 10], [0, 0], 'k--', linewidth=plotLinewidth)
+    hl = plt.legend(loc=2, fontsize=plotfontsize - 3)
+    hl.draw_frame(False)
+    plt.xlim([0, 3])
+    plt.ylim([0, 0.35])
+    plt.xticks(linspace(0.0, 3.0, 7), color='k', size=plotfontsize)
+    plt.yticks(linspace(0.0, 0.3, 7), color='k', size=plotfontsize)
+    minorLocator = MultipleLocator(0.1)
+    ax.xaxis.set_minor_locator(minorLocator)
+    plt.xlabel(r'$p_T$ (GeV)', {'fontsize': plotfontsize + 5})
+    plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
+    plt.text(0.05, 0.25, 'Au+Au %s @ RIHC'
+             % (centrality_label[icen]), fontsize=plotfontsize)
+    plt.savefig(path.expanduser('~/Desktop/charged_v2diff_vs_RHIC_C%s.pdf'
+                % centrality_name[icen]), format='pdf')
+    plt.close()
+    # plt.show()
+
+
+def plot_pid_diffv2_vs_STAR(folder_path, icen):
+    expdata_path = path.abspath(
+        path.join(exp_path, 'RHIC200', 'STAR/arranged/v2'))
+    particle_list = ['Pion', 'Kaon', 'pbar']
+    particle_lable = [r'$\pi^+$', r'$K^+$', r'$p$']
+
+    fig = plt.figure()
+    ax = plt.axes([0.15, 0.13, 0.8, 0.82])
+    iplot = 0
+    for ipart in range(len(particle_list)):
+        particle_name = particle_list[ipart]
+        expdata = loadtxt(path.join(expdata_path, '%sv2_2%s'
+                                    % (particle_name,
+                                       centrality_name_th[icen])))
+        # exp data
+        plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+            getPlotElements(iplot))
+        plt.errorbar(expdata[:, 0], expdata[:, 1]/100, yerr=expdata[:, 2]/100,
+                     color=plotColor, linestyle='none',
+                     linewidth=plotLinewidth,
+                     marker=plotMarker, markersize=plotMarkerSize,
+                     label=particle_lable[ipart])
+        # theory curves
+        th_particle_name_list = ['pion_p', 'Kaon_p', 'proton']
+        th_data = loadtxt(
+            glob(path.join(folder_path,
+                           '*C%s*/%s_vndata.dat'
+                           % (centrality_name_theory[icen],
+                              th_particle_name_list[ipart])))[0])
+        plt.plot(th_data[:, 0], th_data[:, 8],
+                 color=plotColor, linestyle=plotlinestyle,
+                 linewidth=plotLinewidth, marker='', markersize=plotMarkerSize)
+
+        iplot += 1
+    # plt.plot([0, 10], [0, 0], 'k--', linewidth = plotLinewidth)
+    hl = plt.legend(loc=4, ncol=1, fontsize=plotfontsize - 3)
+    hl.draw_frame(False)
+    plt.xlim([0, 3])
+    plt.ylim([0.0, 0.3])
+    plt.xticks(linspace(0.0, 3.0, 7), color='k', size=plotfontsize)
+    plt.yticks(color='k', size=plotfontsize)
+    minorLocator = MultipleLocator(0.1)
+    ax.xaxis.set_minor_locator(minorLocator)
+    plt.xlabel(r'$p_T$ (GeV)', {'fontsize': plotfontsize + 5})
+    plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
+    plt.text(0.05, 0.27, 'Au+Au %s @ RIHC' % centrality_label[icen],
+             fontsize=plotfontsize)
+    plt.savefig(path.expanduser('~/Desktop/pidv2_vs_STAR_C%s.pdf'
+                % centrality_name[icen]), format='pdf')
+    plt.close()
+    #plt.show()
+
+
+def plot_pidspectra_vs_RHIC(folder_path, icen):
+    star_data_path = path.abspath(
+        path.join(exp_path, 'RHIC200', 'STAR/arranged/spectra'))
+    phenix_data_path = path.abspath(
+        path.join(exp_path, 'RHIC200', 'PHENIX/spectra'))
+
+    star_particle_list = ['pionplus', 'Kplus', 'p']
+    phenix_particle_list = ['piplus', 'Kplus', 'p']
+    particle_lable = [r'$\pi^+$', r'$K^+$', r'$p$']
+
+    fig = plt.figure()
+    ax = plt.axes([0.15, 0.13, 0.8, 0.82])
+    iplot = 0
+    for ipart in range(len(star_particle_list)):
+        star_data = loadtxt(
+            path.join(star_data_path,
+                      '%s%s' % (star_particle_list[ipart],
+                                    centrality_name_th[icen])))
+        if icen != 2:
+            phenix_data = loadtxt(
+                path.join(phenix_data_path,
+                          '%s%s' % (phenix_particle_list[ipart],
+                                        centrality_name_th[icen])))
+        # exp data
+        plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+            getPlotElements(iplot+3))
+        plt.errorbar(star_data[:-1, 0], star_data[:-1, 1],
+                     yerr=star_data[:-1, 2],
+                     color=plotColor, linestyle='none',
+                     linewidth=plotLinewidth,
+                     marker=plotMarker, markersize=plotMarkerSize,
+                     label='STAR ' + particle_lable[ipart])
+        if icen != 2:
+            plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+                getPlotElements(iplot))
+            plt.errorbar(phenix_data[:, 0], phenix_data[:, 1],
+                         yerr=phenix_data[:, 2],
+                         color=plotColor, linestyle='none',
+                         linewidth=plotLinewidth,
+                         marker=plotMarker, markersize=plotMarkerSize,
+                         label='PHENIX ' + particle_lable[ipart])
+
+        # theory curves
+        th_particle_name_list = ['pion_p', 'Kaon_p', 'proton']
+        th_data = loadtxt(
+            glob(path.join(folder_path,
+                           '*C%s*/%s_vndata.dat'
+                           % (centrality_name_theory[icen],
+                              th_particle_name_list[ipart])))[0])
+        plt.plot(th_data[:, 0], th_data[:, 2],
+                 color=plotColor, linestyle=plotlinestyle,
+                 linewidth=plotLinewidth, marker='', markersize=plotMarkerSize)
+
+        iplot += 1
+    # plt.plot([0, 10], [0, 0], 'k--', linewidth = plotLinewidth)
+    hl = plt.legend(loc=3, ncol=1, fontsize=plotfontsize - 3)
+    hl.draw_frame(False)
+    plt.xlim([0, 3])
+    plt.ylim([1e-4, 1e3])
+    plt.yscale('log')
+    plt.xticks(linspace(0.0, 3.0, 7), color='k', size=plotfontsize)
+    plt.yticks(color='k', size=plotfontsize)
+    minorLocator = MultipleLocator(0.1)
+    ax.xaxis.set_minor_locator(minorLocator)
+    plt.xlabel(r'$p_T$ (GeV)', {'fontsize': plotfontsize + 5})
+    plt.ylabel(r'$dN/(2\pi dy p_T dp_T)$ (GeV$^{-2}$)',
+               {'fontsize': plotfontsize + 5})
+    plt.text(1.5, 300, 'Au+Au %s @ RHIC' % (centrality_label[icen]),
+             fontsize=plotfontsize)
+    plt.savefig(path.expanduser('~/Desktop/pidSpectra_vs_RHIC_C%s.pdf'
+                % centrality_name[icen]), format='pdf')
+    plt.close()
+    #plt.show()
+
 
 def make_LHC2760_comparisons(folder_path):
     """
@@ -318,12 +616,22 @@ def make_LHC2760_comparisons(folder_path):
     for icen in range(8):
         plot_diffv2_charged_vs_ATLAS(folder_path, icen)
         plot_pidspectra_vs_ALICE(folder_path, icen)
-    for icen in range(1,7):
+    for icen in range(1, 7):
         plot_pid_diffv2_vs_ALICE(folder_path, icen)
 
 
 def make_RHIC200_comparisons(folder_path):
-    pass
+    """
+    Generate comparisons for Au+Au collisions at 200 A GeV
+    """
+    plot_multiplicity_vs_cen_PHOBOS(folder_path)
+    plot_vn_vs_cen_STAR(folder_path)
+    for icen in range(2, 7):
+        plot_diffv2_charged_vs_RHIC(folder_path, icen)
+    for icen in range(8):
+        plot_pid_diffv2_vs_STAR(folder_path, icen)
+        plot_pidspectra_vs_RHIC(folder_path, icen)
+
 
 
 def generate_plots(folder_path, ecm):
