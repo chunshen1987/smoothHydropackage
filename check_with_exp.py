@@ -20,13 +20,29 @@ plotMarkerSize = 8
 
 exp_path = './exp_data'
 
+class color:
+    """
+    define colors in the terminal
+    """
+    purple = '\033[95m'
+    cyan = '\033[96m'
+    darkcyan = '\033[36m'
+    blue = '\033[94m'
+    green = '\033[92m'
+    yellow = '\033[93m'
+    red = '\033[91m'
+    bold = '\033[1m'
+    underline = '\033[4m'
+    end = '\033[0m'
+    
 
 def plot_diffv2_charged_vs_ATLAS(icen):
     expdata_path = path.abspath(
         path.join(exp_path, 'LHC2760',
                   'ATLAS_data/ChargedHadron_vnpT_data/arranged_data'))
 
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax = plt.axes([0.15, 0.13, 0.8, 0.82])
     iplot = 0
 
     # exp data
@@ -39,15 +55,10 @@ def plot_diffv2_charged_vs_ATLAS(icen):
                  color=plotColor, linestyle='none',
                  linewidth=plotLinewidth,
                  marker=plotMarker, markersize=plotMarkerSize,
-                 label='ATLAS data')
+                 label='ATLAS data $v_2\{2\}$')
 
     # theory curves
-    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-        getPlotElements(iplot))
-    plt.plot(vndata[:, 0], vndata[:, 1], color=plotColor,
-             linestyle=plotlinestyle, linewidth=plotLinewidth,
-             marker='', markersize=plotMarkerSize,
-             label=r'$v_%d$' % iorder)
+
 
     plt.plot([0, 10], [0, 0], 'k--', linewidth=plotLinewidth)
     hl = plt.legend(loc=2, fontsize=plotfontsize - 3)
@@ -59,29 +70,29 @@ def plot_diffv2_charged_vs_ATLAS(icen):
     minorLocator = MultipleLocator(0.1)
     ax.xaxis.set_minor_locator(minorLocator)
     plt.xlabel(r'$p_T$ (GeV)', {'fontsize': plotfontsize + 5})
-    plt.ylabel(r'$v_n\{2\}$', {'fontsize': plotfontsize + 5})
-    plt.text(0.05, 0.25, '%s $\eta/s = %s$ Pb+Pb %s @ LHC'
-             % (
-        model_label[imodel], vis_label[imodel], centrality_label[icen]),
-             fontsize=plotfontsize)
-    fig.set_tight_layout(True)
-    plt.savefig('/Users/Chun/Desktop/charged_vn_diff_vs_ATLAS_C%s_%s.pdf'
-                % (centrality_name[icen], model_name[imodel]), format='pdf')
+    plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
+    plt.text(0.05, 0.25, 'Pb+Pb %s @ LHC'
+             % (centrality_label[icen]), fontsize=plotfontsize)
+    plt.savefig(path.expanduser('~/Desktop/charged_v2diff_vs_ATLAS_C%s.pdf'
+                % centrality_name[icen]), format='pdf')
     # plt.show()
 
 
-def plot_pid_diffvn2_vs_ALICE(imodel, icen):
-    expdata_path = path.abspath('../LHC_ALICEdata/v2/Identified_particles')
+def plot_pid_diffv2_vs_ALICE(icen):
+    expdata_path = path.abspath(
+        path.join(exp_path, 'LHC2760',
+                  'LHC_ALICEdata/v2/Identified_particles'))
     particle_list = ['pion', 'kaon', 'antiproton']
     particle_lable = [r'$\pi^+$', r'$K^+$', r'$p$']
 
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax = plt.axes([0.15, 0.13, 0.8, 0.82])
     iplot = 0
     for ipart in range(len(particle_list)):
         particle_name = particle_list[ipart]
         expdata = loadtxt(path.join(expdata_path, '%s_v2_2_%s.dat'
-                                    % (
-            particle_name, centrality_name_th[icen])))
+                                    % (particle_name,
+                                       centrality_name_th[icen])))
         # exp data
         plotlinestyle, plotMarker, plotColor, plotshadowColor = (
             getPlotElements(iplot))
@@ -92,20 +103,7 @@ def plot_pid_diffvn2_vs_ALICE(imodel, icen):
                      marker=plotMarker, markersize=plotMarkerSize,
                      label=particle_lable[ipart])
         # theory curves
-        particle_list_th = ['pion_p_hydro', 'kaon_p_hydro', 'proton_hydro']
-        file_name = ('Pb_%s_%s.db'
-                     % (centrality_name[icen], model_name[imodel]))
-        database_name = path.join(folder_path, file_name)
-        dndata = getdiffvn2(database_name, 2, particle_list_th[ipart])
-        plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-            getPlotElements(iplot))
-        plt.plot(dndata[:, 0], dndata[:, 1], color=plotColor,
-                 linestyle=plotlinestyle, linewidth=plotLinewidth,
-                 marker='', markersize=plotMarkerSize)
-        plt.fill_between(dndata[:, 0],
-                         dndata[:, 1] - dndata[:, 2],
-                         dndata[:, 1] + dndata[:, 2],
-                         color=plotColor, alpha=0.2)
+
         iplot += 1
     # plt.plot([0, 10], [0, 0], 'k--', linewidth = plotLinewidth)
     hl = plt.legend(loc=4, ncol=1, fontsize=plotfontsize - 3)
@@ -117,25 +115,21 @@ def plot_pid_diffvn2_vs_ALICE(imodel, icen):
     minorLocator = MultipleLocator(0.1)
     ax.xaxis.set_minor_locator(minorLocator)
     plt.xlabel(r'$p_T$ (GeV)', {'fontsize': plotfontsize + 5})
-    plt.ylabel(r'$v_2\{2\}$', {'fontsize': plotfontsize + 5})
-    plt.text(0.05, 0.27, '%s $\eta/s = %s$ Pb+Pb %s @ LHC'
-             % (
-        model_label[imodel], vis_label[imodel], centrality_label[icen]),
+    plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
+    plt.text(0.05, 0.27, 'Pb+Pb %s @ LHC' % centrality_label[icen],
              fontsize=plotfontsize)
-    fig.set_tight_layout(True)
-    plt.savefig('/Users/Chun/Desktop/pidv2_vs_ALICE_C%s_%s.pdf'
-                % (centrality_name[icen], model_name[imodel]), format='pdf')
+    plt.savefig(path.expanduser('~/Desktop/pidv2_vs_ALICE_C%s.pdf'
+                % centrality_name[icen]), format='pdf')
     #plt.show()
 
 
 def plot_vn_vs_cen_ALICE(imodel):
     # exp data
+    expdata_path = path.abspath(
+        path.join(exp_path, 'LHC2760', 'LHC_ALICEdata'))
     v2_exp = loadtxt(
-        '/Volumes/ChunShen_works/Works_on_going/LHC_ebe/LHC_ALICEdata/v2/Charged_hadrons/ALICE_Ch_v2int_Sp_nonflowcorrected.dat')
-    v3_exp = loadtxt(
-        '/Volumes/ChunShen_works/Works_on_going/LHC_ebe/LHC_ALICEdata/v3/ALICE_Chv3_Sp_int.dat')
-    v4_exp = loadtxt(
-        '/Volumes/ChunShen_works/Works_on_going/LHC_ebe/LHC_ALICEdata/v4/v4_SP.dat')
+        path.join(expdata_path,
+                  'v2/Charged_hadrons/ALICE_Ch_v2int_Sp_nonflowcorrected.dat'))
 
     fig = plt.figure()
     plt.axes([0.15, 0.13, 0.8, 0.82])
@@ -149,105 +143,11 @@ def plot_vn_vs_cen_ALICE(imodel):
                  linewidth=plotLinewidth,
                  marker=plotMarker, markersize=plotMarkerSize,
                  label=r'ALICE $v_2\{\mathrm{SP}\}$ data')
-    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-        getPlotElements(iplot))
-    iplot += 1
-    plt.errorbar(v3_exp[:, 0], v3_exp[:, 1], v3_exp[:, 2],
-                 color=plotColor, linestyle='none',
-                 linewidth=plotLinewidth,
-                 marker=plotMarker, markersize=plotMarkerSize,
-                 label=r'ALICE $v_3\{\mathrm{SP}\}$ data')
-
-    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-        getPlotElements(iplot))
-    iplot += 1
-    plt.errorbar(v4_exp[:, 0], v4_exp[:, 1], v4_exp[:, 2],
-                 color=plotColor, linestyle='none',
-                 linewidth=plotLinewidth,
-                 marker=plotMarker, markersize=plotMarkerSize,
-                 label=r'ALICE $v_4\{\mathrm{SP}\}$ data')
 
     #theory
-    v2_th = []
-    v2_th_err = []
-    v3_th = []
-    v3_th_err = []
-    v4_th = []
-    v4_th_err = []
-    v5_th = []
-    v5_th_err = []
-    cen_central = [2.5, 7.5, 15, 25, 35, 45, 55, 65]
-    for icen in range(len(centrality_name)):
-        file_name = ('Pb_%s_%s.db'
-                     % (centrality_name[icen], model_name[imodel]))
-        database_name = path.join(folder_path, file_name)
-        v2data = getintevn2(database_name, 2, 'charged_hydro', 0.2, 3.5)
-        v3data = getintevn2(database_name, 3, 'charged_hydro', 0.2, 3.5)
-        v4data = getintevn2(database_name, 4, 'charged_hydro', 0.2, 3.5)
-        v5data = getintevn2(database_name, 5, 'charged_hydro', 0.2, 3.5)
-        v2_th.append(v2data[0])
-        v2_th_err.append(v2data[1])
-        v3_th.append(v3data[0])
-        v3_th_err.append(v3data[1])
-        v4_th.append(v4data[0])
-        v4_th_err.append(v4data[1])
-        v5_th.append(v5data[0])
-        v5_th_err.append(v5data[1])
-    v2_th = array(v2_th)
-    v2_th_err = array(v2_th_err)
-    v3_th = array(v3_th)
-    v3_th_err = array(v3_th_err)
-    v4_th = array(v4_th)
-    v4_th_err = array(v4_th_err)
-    v5_th = array(v5_th)
-    v5_th_err = array(v5_th_err)
 
-    iplot = 0
-    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-        getPlotElements(iplot))
-    iplot += 1
-    plt.plot(cen_central, v2_th,
-             color=plotColor, linestyle='-',
-             linewidth=plotLinewidth,
-             marker='', markersize=plotMarkerSize,
-             label=labeltext[imodel] + r' $v_2\{\mathrm{SP}\}$')
-    plt.fill_between(cen_central, v2_th - v2_th_err, v2_th + v2_th_err,
-                     color=plotColor, alpha=0.2)
 
-    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-        getPlotElements(iplot))
-    iplot += 1
-    plt.plot(cen_central, v3_th,
-             color=plotColor, linestyle='--',
-             linewidth=plotLinewidth,
-             marker='', markersize=plotMarkerSize,
-             label=labeltext[imodel] + r' $v_3\{\mathrm{SP}\}$')
-    plt.fill_between(cen_central, v3_th - v3_th_err, v3_th + v3_th_err,
-                     color=plotColor, alpha=0.2)
-
-    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-        getPlotElements(iplot))
-    iplot += 1
-    plt.plot(cen_central, v4_th,
-             color=plotColor, linestyle='-.',
-             linewidth=plotLinewidth,
-             marker='', markersize=plotMarkerSize,
-             label=labeltext[imodel] + r' $v_4\{\mathrm{SP}\}$')
-    plt.fill_between(cen_central, v4_th - v4_th_err, v4_th + v4_th_err,
-                     color=plotColor, alpha=0.2)
-
-    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-        getPlotElements(iplot))
-    iplot += 1
-    plt.plot(cen_central, v5_th,
-             color=plotColor, linestyle=':',
-             linewidth=plotLinewidth,
-             marker='', markersize=plotMarkerSize,
-             label=labeltext[imodel] + r' $v_5\{\mathrm{SP}\}$')
-    plt.fill_between(cen_central, v5_th - v5_th_err, v5_th + v5_th_err,
-                     color=plotColor, alpha=0.2)
-
-    hl = plt.legend(loc=2, ncol=2, fontsize=plotfontsize - 6)
+    hl = plt.legend(loc=2, fontsize=plotfontsize - 6)
     hl.draw_frame(False)
     plt.xlim([0, 70])
     plt.ylim([0.0, 0.15])
@@ -256,25 +156,28 @@ def plot_vn_vs_cen_ALICE(imodel):
     #minorLocator = MultipleLocator(0.1)
     #ax.xaxis.set_minor_locator(minorLocator)
     plt.xlabel(r'Centrality (%)', {'fontsize': plotfontsize + 5})
-    plt.ylabel(r'$v_n\{SP\}$', {'fontsize': plotfontsize + 5})
-    plt.savefig('/Users/Chun/Desktop/vn_vs_cen_ALICE_%s.pdf'
-                % (model_name[imodel]), format='pdf')
+    plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
+    plt.savefig(path.expanduser('~/Desktop/v2_vs_cen_ALICE.pdf'),
+                format='pdf')
     #plt.show()
 
 
 def plot_pidspectra_vs_ALICE(imodel, icen):
-    expdata_path = path.abspath('../LHC_ALICEdata/ALICEIdSpdata')
+    expdata_path = path.abspath(
+        path.join(exp_path, 'LHC2760', 'LHC_ALICEdata/ALICEIdSpdata'))
 
     particle_list = ['pion+', 'Kaon+', 'Proton']
     particle_lable = [r'$\pi^+$', r'$K^+$', r'$p$']
 
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax = plt.axes([0.15, 0.13, 0.8, 0.82])
     iplot = 0
     for ipart in range(len(particle_list)):
         particle_name = particle_list[ipart]
-        expdata = loadtxt(path.join(expdata_path, '%s_C%s.dat'
-                                    % (
-            particle_name, centrality_name_th[icen])))
+        expdata = loadtxt(
+            path.join(expdata_path,
+                      '%s_C%s.dat' % (particle_name,
+                                      centrality_name_th[icen])))
         # exp data
         plotlinestyle, plotMarker, plotColor, plotshadowColor = (
             getPlotElements(iplot))
@@ -285,20 +188,7 @@ def plot_pidspectra_vs_ALICE(imodel, icen):
                      marker=plotMarker, markersize=plotMarkerSize,
                      label=particle_lable[ipart])
         # theory curves
-        particle_list_th = ['pion_p_hydro', 'kaon_p_hydro', 'proton_hydro']
-        file_name = ('Pb_%s_%s.db'
-                     % (centrality_name[icen], model_name[imodel]))
-        database_name = path.join(folder_path, file_name)
-        dndata = getpTspectra(database_name, particle_list_th[ipart])
-        plotlinestyle, plotMarker, plotColor, plotshadowColor = (
-            getPlotElements(iplot))
-        plt.plot(dndata[:, 0], dndata[:, 1], color=plotColor,
-                 linestyle=plotlinestyle, linewidth=plotLinewidth,
-                 marker='', markersize=plotMarkerSize)
-        plt.fill_between(dndata[:, 0],
-                         dndata[:, 1] - dndata[:, 2],
-                         dndata[:, 1] + dndata[:, 2],
-                         color=plotColor, alpha=0.2)
+
         iplot += 1
     # plt.plot([0, 10], [0, 0], 'k--', linewidth = plotLinewidth)
     hl = plt.legend(loc=3, ncol=1, fontsize=plotfontsize - 3)
@@ -313,13 +203,10 @@ def plot_pidspectra_vs_ALICE(imodel, icen):
     plt.xlabel(r'$p_T$ (GeV)', {'fontsize': plotfontsize + 5})
     plt.ylabel(r'$dN/(2\pi dy p_T dp_T)$ (GeV$^{-2}$)',
                {'fontsize': plotfontsize + 5})
-    plt.text(0.05, 3000, '%s $\eta/s = %s$ Pb+Pb %s @ LHC'
-             % (
-        model_label[imodel], vis_label[imodel], centrality_label[icen]),
+    plt.text(0.05, 3000, 'Pb+Pb %s @ LHC' % (centrality_label[icen]),
              fontsize=plotfontsize)
-    fig.set_tight_layout(True)
-    plt.savefig('/Users/Chun/Desktop/pidSpectra_vs_ALICE_C%s_%s.pdf'
-                % (centrality_name[icen], model_name[imodel]), format='pdf')
+    plt.savefig(path.expanduser('~/Desktop/pidSpectra_vs_ALICE_C%s.pdf'
+                % centrality_name[icen]), format='pdf')
     #plt.show()
 
 
