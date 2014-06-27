@@ -2,6 +2,7 @@
 
 import pylab as plt
 from numpy import *
+import sys
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from os import path
 from CSplottools import getPlotElements
@@ -34,9 +35,9 @@ class color:
     bold = '\033[1m'
     underline = '\033[4m'
     end = '\033[0m'
-    
 
-def plot_diffv2_charged_vs_ATLAS(icen):
+
+def plot_diffv2_charged_vs_ATLAS(folder_path, icen):
     expdata_path = path.abspath(
         path.join(exp_path, 'LHC2760',
                   'ATLAS_data/ChargedHadron_vnpT_data/arranged_data'))
@@ -75,13 +76,14 @@ def plot_diffv2_charged_vs_ATLAS(icen):
              % (centrality_label[icen]), fontsize=plotfontsize)
     plt.savefig(path.expanduser('~/Desktop/charged_v2diff_vs_ATLAS_C%s.pdf'
                 % centrality_name[icen]), format='pdf')
+    plt.close()
     # plt.show()
 
 
-def plot_pid_diffv2_vs_ALICE(icen):
+def plot_pid_diffv2_vs_ALICE(folder_path, icen):
     expdata_path = path.abspath(
         path.join(exp_path, 'LHC2760',
-                  'LHC_ALICEdata/v2/Identified_particles'))
+                  'ALICE_data/v2/Identified_particles'))
     particle_list = ['pion', 'kaon', 'antiproton']
     particle_lable = [r'$\pi^+$', r'$K^+$', r'$p$']
 
@@ -120,13 +122,14 @@ def plot_pid_diffv2_vs_ALICE(icen):
              fontsize=plotfontsize)
     plt.savefig(path.expanduser('~/Desktop/pidv2_vs_ALICE_C%s.pdf'
                 % centrality_name[icen]), format='pdf')
+    plt.close()
     #plt.show()
 
 
-def plot_vn_vs_cen_ALICE(imodel):
+def plot_vn_vs_cen_ALICE(folder_path):
     # exp data
     expdata_path = path.abspath(
-        path.join(exp_path, 'LHC2760', 'LHC_ALICEdata'))
+        path.join(exp_path, 'LHC2760', 'ALICE_data'))
     v2_exp = loadtxt(
         path.join(expdata_path,
                   'v2/Charged_hadrons/ALICE_Ch_v2int_Sp_nonflowcorrected.dat'))
@@ -147,7 +150,7 @@ def plot_vn_vs_cen_ALICE(imodel):
     #theory
 
 
-    hl = plt.legend(loc=2, fontsize=plotfontsize - 6)
+    hl = plt.legend(loc=2, fontsize=plotfontsize - 3)
     hl.draw_frame(False)
     plt.xlim([0, 70])
     plt.ylim([0.0, 0.15])
@@ -159,12 +162,13 @@ def plot_vn_vs_cen_ALICE(imodel):
     plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
     plt.savefig(path.expanduser('~/Desktop/v2_vs_cen_ALICE.pdf'),
                 format='pdf')
+    plt.close()
     #plt.show()
 
 
-def plot_pidspectra_vs_ALICE(imodel, icen):
+def plot_pidspectra_vs_ALICE(folder_path, icen):
     expdata_path = path.abspath(
-        path.join(exp_path, 'LHC2760', 'LHC_ALICEdata/ALICEIdSpdata'))
+        path.join(exp_path, 'LHC2760', 'ALICE_data/ALICEIdSpdata'))
 
     particle_list = ['pion+', 'Kaon+', 'Proton']
     particle_lable = [r'$\pi^+$', r'$K^+$', r'$p$']
@@ -194,7 +198,7 @@ def plot_pidspectra_vs_ALICE(imodel, icen):
     hl = plt.legend(loc=3, ncol=1, fontsize=plotfontsize - 3)
     hl.draw_frame(False)
     plt.xlim([0, 3])
-    plt.ylim([1e-2, 1e4])
+    plt.ylim([1e-3, 3e3])
     plt.yscale('log')
     plt.xticks(linspace(0.0, 3.0, 7), color='k', size=plotfontsize)
     plt.yticks(color='k', size=plotfontsize)
@@ -203,11 +207,38 @@ def plot_pidspectra_vs_ALICE(imodel, icen):
     plt.xlabel(r'$p_T$ (GeV)', {'fontsize': plotfontsize + 5})
     plt.ylabel(r'$dN/(2\pi dy p_T dp_T)$ (GeV$^{-2}$)',
                {'fontsize': plotfontsize + 5})
-    plt.text(0.05, 3000, 'Pb+Pb %s @ LHC' % (centrality_label[icen]),
+    plt.text(1.5, 1000, 'Pb+Pb %s @ LHC' % (centrality_label[icen]),
              fontsize=plotfontsize)
     plt.savefig(path.expanduser('~/Desktop/pidSpectra_vs_ALICE_C%s.pdf'
                 % centrality_name[icen]), format='pdf')
+    plt.close()
     #plt.show()
+
+
+def make_LHC2760_comparisons(folder_path):
+
+    plot_vn_vs_cen_ALICE(folder_path)
+
+    for icen in range(8):
+        plot_diffv2_charged_vs_ATLAS(folder_path, icen)
+        plot_pidspectra_vs_ALICE(folder_path, icen)
+    for icen in range(1,7):
+        plot_pid_diffv2_vs_ALICE(folder_path, icen)
+
+
+def make_RHIC200_comparisons(folder_path):
+    pass
+
+
+def generate_plots(folder_path, ecm):
+    if '%.0f' % ecm == '2760':
+        make_LHC2760_comparisons(folder_path)
+    elif '%.0f' % ecm == '200':
+        make_RHIC200_comparisons(folder_path)
+    else:
+        raise ValueError("The experimental data is not available "
+                         + "at this collision energy in this package")
+        exit(1)
 
 
 def print_help_message():
@@ -236,3 +267,4 @@ if __name__ == "__main__":
             print sys.argv[0], ': invalid option', option
             print_help_message()
             sys.exit(1)
+    generate_plots(folder_path, ecm)
