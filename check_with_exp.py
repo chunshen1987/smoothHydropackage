@@ -195,6 +195,59 @@ def plot_vn_vs_cen_ALICE(folder_path):
     #plt.show()
 
 
+def plot_multiplicity_vs_cen_ALICE(folder_path):
+    # exp data
+    expdata_path = path.abspath(
+        path.join(exp_path, 'LHC2760', 'ALICE_data'))
+    dn_exp = loadtxt(path.join(expdata_path, 'Multiplicity_Centrality.dat'))
+
+    fig = plt.figure()
+    plt.axes([0.15, 0.13, 0.8, 0.82])
+    iplot = 0
+
+    plotlinestyle, plotMarker, plotColor, plotshadowColor = (
+        getPlotElements(iplot))
+    iplot += 1
+    plt.errorbar(dn_exp[:, 0], dn_exp[:, 2], xerr=dn_exp[:, 1],
+                 yerr=dn_exp[:, 3], color=plotColor, linestyle='none',
+                 linewidth=plotLinewidth,
+                 marker=plotMarker, markersize=plotMarkerSize,
+                 label=r'ALICE data')
+
+    #theory
+    temp_data = loadtxt(path.join(folder_path, 'initial_conditions',
+                                  'centralityCut_total_entropy.dat'))
+    npart_th = temp_data[:,1]
+    dn_th = []
+    for icen in range(len(centrality_name_theory)):
+        temp_data = loadtxt(
+            glob(path.join(folder_path,
+                           '*C%s*/Charged_eta_integrated_vndata.dat'
+                           % centrality_name_theory[icen]))[0])
+        dn_th.append(temp_data[0, 1])
+    dn_th = array(dn_th)
+    plt.plot(npart_th, dn_th/(npart_th/2.),
+             color=plotColor, linestyle=plotlinestyle, linewidth=plotLinewidth,
+             marker='', markersize=plotMarkerSize,
+             label=r'theory')
+
+    hl = plt.legend(loc=2, fontsize=plotfontsize - 3)
+    hl.draw_frame(False)
+    plt.xlim([0, 400])
+    plt.ylim([3, 9])
+    plt.xticks(linspace(0, 400, 9), color='k', size=plotfontsize)
+    plt.yticks(color='k', size=plotfontsize)
+    #minorLocator = MultipleLocator(0.1)
+    #ax.xaxis.set_minor_locator(minorLocator)
+    plt.xlabel(r'$N_\mathrm{part}$', {'fontsize': plotfontsize + 5})
+    plt.ylabel(r'$dN^\mathrm{ch}/d\eta/(N_\mathrm{part}/2)$',
+               {'fontsize': plotfontsize + 5})
+    plt.savefig(path.expanduser('~/Desktop/multiplicity_vs_cen_ALICE.pdf'),
+                format='pdf')
+    plt.close()
+    #plt.show()
+
+
 def plot_pidspectra_vs_ALICE(folder_path, icen):
     expdata_path = path.abspath(
         path.join(exp_path, 'LHC2760', 'ALICE_data/ALICEIdSpdata'))
@@ -257,6 +310,7 @@ def make_LHC2760_comparisons(folder_path):
     """
     Generate comparisons for Pb+Pb collisions at 2.76 A TeV
     """
+    plot_multiplicity_vs_cen_ALICE(folder_path)
     # pT-integrated flow
     plot_vn_vs_cen_ALICE(folder_path)
 
