@@ -241,15 +241,15 @@ def run_purehydro_all_centralities(model, ecm, norm_factor, vis, edec, tau0,
                               run_record, err_record,
                               norm_factor, vis, edec, tau0)
             shutil.move(path.join(iS_path, 'results'),
-                        path.join('RESULTS',
-                                  '%s%.0fVis%gC%sEdec%gTau%g_hydroOnly'
+                        path.join('RESULTS', '%s%.0fVis%gC%sEdec%gTau%g'
                                   % (model, ecm, vis, cen_list[icen],
                                      edec, tau0)))
         else:
             run_hydro_evo(icen, hydro_path, run_record, err_record,
                           norm_factor, vis, edec, tau0)
             shutil.move(path.join(hydro_path, 'results'),
-                        path.join('RESULTS', '%s%.0fVis%gC%sEdec%gTau%g'
+                        path.join('RESULTS',
+                                  '%s%.0fVis%gC%sEdec%gTau%g_hydroOnly'
                                   % (model, ecm, vis, cen_list[icen],
                                      edec, tau0)))
     shutil.move(path.join('.', run_record_file_name), 'RESULTS')
@@ -273,8 +273,32 @@ def run_hybrid_all_centralities(model, ecm, norm_factor, vis, edec, tau0):
     shutil.move(path.join('.', run_record_file_name), 'RESULTS')
     shutil.move(path.join('.', err_record_file_name), 'RESULTS')
 
+def set_eos(eos_name):
+    """
+    This function replace the EOS for the whole simulation
+    :param eos_name: the name of EOS
+    """
+    hydro_eos_path = './VISHNew/EOS/EOS_tables'
+    iS_eos_path = './iS/EOS'
+    iSS_eos_path = './iSS/EOS'
+    if eos_name == 's95p-v0-PCE165':
+        eos_files_path = './EOS/EOS_s95p/s95p_convertedtables/s95p-PCE165-v0'
+    elif eos_name == 's95p-v1-PCE150':
+        eos_files_path = './EOS/EOS_s95p/s95p_convertedtables/s95p-PCE-v1'
+    elif eos_name == 's95p-v1':
+        eos_files_path = './EOS/EOS_s95p/s95p_convertedtables/s95p-v1'
+    elif eos_name == 'SM-EOS-Q':
+        eos_files_path = './EOS/SMEOSQ'
+    else:
+        raise ValueError('invalid EOS: %s' % eos_name)
 
-def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0,
+    # copy EOS files to hydro, iS, and iSS folder
+    for aFile in glob(path.join(eos_files_path, '*')):
+        shutil.copy(aFile, hydro_eos_path)
+        shutil.copy(aFile, iS_eos_path)
+        shutil.copy(aFile, iSS_eos_path)
+
+def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, eos_name,
                     cf_flag, fit_flag):
     """
     shell function to run simulations
@@ -285,17 +309,22 @@ def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0,
     :param vis: the specific shear viscosity
     :param edec: the decoupling energy density
     :param tau0: the starting time of hydrodynamic simulation
+    :param eos_name: the name of EOS
     :param cf_flag: switch for Cooper-Frye freeze-out
     :return: none
     """
     print('%s mode: %s sqrt{s} = %s A GeV' % (mode, model, ecm))
     print('eta/s = %g, Edec = %g GeV/fm^3, tau0 = %g fm/c' % (vis, edec, tau0))
+    print('EOS : %s' % eos_name)
 
     # initial setup
     result_folder_path = './RESULTS'
     if path.exists(result_folder_path):
         shutil.rmtree(result_folder_path)
     makedirs(result_folder_path)
+
+    set_eos(eos_name)
+
     initial_condition_name = '%s%.0f_sigmaNN_gauss_d0.4' % (model, ecm)
     shutil.copytree(path.join('./initial_conditions', initial_condition_name),
                     path.join(result_folder_path, 'initial_conditions'))
@@ -323,7 +352,7 @@ def print_help_message():
     print(color.bold
           + "./runHydro.py -ecm ecm "
           + "[-mode mode -model model -vis vis -Edec edec -tau0 tau0 "
-          + "-cf_flag cf_flag -fit_flag fit_flag]"
+          + "-EOS eos_name -cf_flag cf_flag -fit_flag fit_flag]"
           + color.end)
     print "Usage of runHydro.py command line arguments: "
     print(color.bold + "-ecm" + color.end
@@ -344,6 +373,11 @@ def print_help_message():
     print(color.bold + "-tau0" + color.end
           + "  the hydrodynamic starting proper time (fm/c) \n"
           + color.bold + "       tau0 = 0.6 fm/c [default]" + color.end)
+    print(color.bold + "-EOS" + color.end
+          + "  the equation of state for hydrodynamic simulation \n"
+          + color.purple + color.bold + "      s95p-v0-PCE165 [default]"
+          + color.end
+          + color.purple + ", s95p-v1-PCE150, s95p-v1, SM-EOS-Q" + color.end)
     print(color.bold + "-cf_flag" + color.end
           + "   switch to perfrom Cooper-Frye freeze-out "
           + "in pure hydro simulation \n"
@@ -362,6 +396,7 @@ if __name__ == "__main__":
     tau0 = 0.6  # fm/c
     mode = 'hydro'
     model = 'MCGlb'
+    eos_name = 's95p-v0-PCE165'
     cf_flag = True
     fit_flag = True
 
@@ -385,6 +420,9 @@ if __name__ == "__main__":
             del sys.argv[1]
         elif option == '-mode':
             mode = str(sys.argv[1])
+            del sys.argv[1]
+        elif option == '-EOS':
+            eos_name = str(sys.argv[1])
             del sys.argv[1]
         elif option == '-cf_flag':
             cf_flag = (sys.argv[1] == 'True')
@@ -416,7 +454,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if mode in ['hydro', 'hybrid']:
-        run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0,
+        run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, eos_name,
                         cf_flag, fit_flag)
     else:
         print sys.argv[0], ': invalid running mode', mode
