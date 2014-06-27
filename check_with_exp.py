@@ -280,28 +280,40 @@ def generate_plots(folder_path, ecm):
     else:
         raise ValueError("The experimental data is not available "
                          + "at this collision energy in this package")
-        exit(1)
 
 
 def print_help_message():
     print "This script generates plots for comparisons with experimental data"
     print "Usage : "
     print(color.bold + "./check_with_exp.py results_folder -ecm ecm "
+          + "[-folder results_folder]"
           + color.end)
     print "Usage of check_with_exp.py command line arguments: "
     print(color.bold + "-ecm" + color.end
-          + "   collision energy (GeV) only support 200 and 2760")
+          + "      collision energy (GeV) only support "
+          + color.purple + "200" + color.end + " and "
+          + color.purple + "2760" + color.end)
+    print(color.bold + "-folder" + color.end
+          + "   specify the results folder "
+          + color.bold + "./RESULTS [default]" + color.end)
     print(color.bold + "-h | -help" + color.end + "    This message")
 
 
 if __name__ == "__main__":
-    folder_path = path.abspath(path.join('./', str(sys.argv[1])))
-    while len(sys.argv) > 2:
-        option = sys.argv[2]
-        del sys.argv[2]
-        if option == '-ecm':
-            ecm = float(sys.argv[2])
-            del sys.argv[2]
+    folder_path = path.abspath('./RESULTS')
+    if len(sys.argv) == 1:
+        print_help_message()
+        exit(0)
+
+    while len(sys.argv) > 1:
+        option = sys.argv[1]
+        del sys.argv[1]
+        if option == '-folder':
+            folder_path = path.abspath(path.join('./', str(sys.argv[1])))
+            del sys.argv[1]
+        elif option == '-ecm':
+            ecm = float(sys.argv[1])
+            del sys.argv[1]
         elif option == '-h':
             print_help_message()
             sys.exit(0)
@@ -309,4 +321,14 @@ if __name__ == "__main__":
             print sys.argv[0], ': invalid option', option
             print_help_message()
             sys.exit(1)
-    generate_plots(folder_path, ecm)
+    try:
+        ecm
+    except NameError:
+        print('collision energy is not defined!')
+        exit(1)
+
+    if path.isdir(folder_path):
+        generate_plots(folder_path, ecm)
+    else:
+        print('results folder is not found: %s' % folder_path)
+        exit(1)
