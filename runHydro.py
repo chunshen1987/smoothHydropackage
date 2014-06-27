@@ -374,8 +374,8 @@ def print_help_message():
           + "  the hydrodynamic starting proper time (fm/c) \n"
           + color.bold + "       tau0 = 0.6 fm/c [default]" + color.end)
     print(color.bold + "-EOS" + color.end
-          + "  the equation of state for hydrodynamic simulation \n"
-          + color.purple + color.bold + "      s95p-v0-PCE165 [default]"
+          + "   the equation of state for hydrodynamic simulation \n"
+          + color.purple + color.bold + "       s95p-v0-PCE165 [default]"
           + color.end
           + color.purple + ", s95p-v1-PCE150, s95p-v1, SM-EOS-Q" + color.end)
     print(color.bold + "-cf_flag" + color.end
