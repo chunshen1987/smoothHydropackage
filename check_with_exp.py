@@ -3,9 +3,10 @@
 import pylab as plt
 from numpy import *
 import sys
+import shutil
 from glob import glob
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
-from os import path
+from os import path, makedirs
 from CSplottools import getPlotElements
 
 centrality_name = ['0_5', '5_10', '10_20', '20_30', '30_40',
@@ -23,6 +24,7 @@ plotLinewidth = 2
 plotMarkerSize = 8
 
 exp_path = './exp_data'
+plots_folder_name = 'plots_vs_exp'
 
 class color:
     """
@@ -82,8 +84,9 @@ def plot_diffv2_charged_vs_ATLAS(folder_path, icen):
     plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
     plt.text(0.05, 0.25, 'Pb+Pb %s @ LHC'
              % (centrality_label[icen]), fontsize=plotfontsize)
-    plt.savefig(path.expanduser('~/Desktop/charged_v2diff_vs_ATLAS_C%s.pdf'
-                % centrality_name[icen]), format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'charged_v2diff_vs_ATLAS_C%s.pdf'
+                          % centrality_name[icen]), format='pdf')
     plt.close()
     # plt.show()
 
@@ -137,8 +140,9 @@ def plot_pid_diffv2_vs_ALICE(folder_path, icen):
     plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
     plt.text(0.05, 0.27, 'Pb+Pb %s @ LHC' % centrality_label[icen],
              fontsize=plotfontsize)
-    plt.savefig(path.expanduser('~/Desktop/pidv2_vs_ALICE_C%s.pdf'
-                % centrality_name[icen]), format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'pidv2_vs_ALICE_C%s.pdf'
+                          % centrality_name[icen]), format='pdf')
     plt.close()
     #plt.show()
 
@@ -189,8 +193,8 @@ def plot_vn_vs_cen_ALICE(folder_path):
     #ax.xaxis.set_minor_locator(minorLocator)
     plt.xlabel(r'Centrality (%)', {'fontsize': plotfontsize + 5})
     plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
-    plt.savefig(path.expanduser('~/Desktop/v2_vs_cen_ALICE.pdf'),
-                format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'v2_vs_cen_ALICE.pdf'), format='pdf')
     plt.close()
     #plt.show()
 
@@ -242,8 +246,8 @@ def plot_multiplicity_vs_cen_ALICE(folder_path):
     plt.xlabel(r'$N_\mathrm{part}$', {'fontsize': plotfontsize + 5})
     plt.ylabel(r'$dN^\mathrm{ch}/d\eta/(N_\mathrm{part}/2)$',
                {'fontsize': plotfontsize + 5})
-    plt.savefig(path.expanduser('~/Desktop/multiplicity_vs_cen_ALICE.pdf'),
-                format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'multiplicity_vs_cen_ALICE.pdf'), format='pdf')
     plt.close()
     #plt.show()
 
@@ -300,8 +304,9 @@ def plot_pidspectra_vs_ALICE(folder_path, icen):
                {'fontsize': plotfontsize + 5})
     plt.text(1.5, 1000, 'Pb+Pb %s @ LHC' % (centrality_label[icen]),
              fontsize=plotfontsize)
-    plt.savefig(path.expanduser('~/Desktop/pidSpectra_vs_ALICE_C%s.pdf'
-                % centrality_name[icen]), format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'pidSpectra_vs_ALICE_C%s.pdf'
+                          % centrality_name[icen]), format='pdf')
     plt.close()
     #plt.show()
 
@@ -352,8 +357,8 @@ def plot_multiplicity_vs_cen_PHOBOS(folder_path):
     plt.xlabel(r'$N_\mathrm{part}$', {'fontsize': plotfontsize + 5})
     plt.ylabel(r'$dN^\mathrm{ch}/d\eta/(N_\mathrm{part}/2)$',
                {'fontsize': plotfontsize + 5})
-    plt.savefig(path.expanduser('~/Desktop/multiplicity_vs_cen_PHOBOS.pdf'),
-                format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'multiplicity_vs_cen_PHOBOS.pdf'), format='pdf')
     plt.close()
     #plt.show()
 
@@ -389,7 +394,7 @@ def plot_vn_vs_cen_STAR(folder_path):
     for icen in range(len(centrality_name_theory)):
         temp_data = loadtxt(
             glob(path.join(folder_path,
-                           '*C%s*/Charged_ptcut02_integrated_vndata.dat'
+                           '*C%s*/Charged_ptcut015_2_integrated_vndata.dat'
                            % centrality_name_theory[icen]))[0])
         v2_th.append(temp_data[2, 5])
     v2_th = array(v2_th)
@@ -410,8 +415,8 @@ def plot_vn_vs_cen_STAR(folder_path):
     #ax.xaxis.set_minor_locator(minorLocator)
     plt.xlabel(r'Centrality (%)', {'fontsize': plotfontsize + 5})
     plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
-    plt.savefig(path.expanduser('~/Desktop/v2_vs_cen_STAR.pdf'),
-                format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'v2_vs_cen_STAR.pdf'), format='pdf')
     plt.close()
     #plt.show()
 
@@ -470,8 +475,9 @@ def plot_diffv2_charged_vs_RHIC(folder_path, icen):
     plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
     plt.text(0.05, 0.25, 'Au+Au %s @ RIHC'
              % (centrality_label[icen]), fontsize=plotfontsize)
-    plt.savefig(path.expanduser('~/Desktop/charged_v2diff_vs_RHIC_C%s.pdf'
-                % centrality_name[icen]), format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'charged_v2diff_vs_RHIC_C%s.pdf'
+                          % centrality_name[icen]), format='pdf')
     plt.close()
     # plt.show()
 
@@ -523,8 +529,9 @@ def plot_pid_diffv2_vs_STAR(folder_path, icen):
     plt.ylabel(r'$v_2$', {'fontsize': plotfontsize + 5})
     plt.text(0.05, 0.27, 'Au+Au %s @ RIHC' % centrality_label[icen],
              fontsize=plotfontsize)
-    plt.savefig(path.expanduser('~/Desktop/pidv2_vs_STAR_C%s.pdf'
-                % centrality_name[icen]), format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'pidv2_vs_STAR_C%s.pdf'
+                          % centrality_name[icen]), format='pdf')
     plt.close()
     #plt.show()
 
@@ -598,8 +605,9 @@ def plot_pidspectra_vs_RHIC(folder_path, icen):
                {'fontsize': plotfontsize + 5})
     plt.text(1.5, 300, 'Au+Au %s @ RHIC' % (centrality_label[icen]),
              fontsize=plotfontsize)
-    plt.savefig(path.expanduser('~/Desktop/pidSpectra_vs_RHIC_C%s.pdf'
-                % centrality_name[icen]), format='pdf')
+    plt.savefig(path.join(folder_path, plots_folder_name,
+                          'pidSpectra_vs_RHIC_C%s.pdf'
+                          % centrality_name[icen]), format='pdf')
     plt.close()
     #plt.show()
 
@@ -635,6 +643,10 @@ def make_RHIC200_comparisons(folder_path):
 
 
 def generate_plots(folder_path, ecm):
+    if path.exists(path.join(folder_path, plots_folder_name)):
+        shutil.rmtree(path.join(folder_path, plots_folder_name))
+    makedirs(path.join(folder_path, plots_folder_name))
+
     if '%.0f' % ecm == '2760':
         make_LHC2760_comparisons(folder_path)
     elif '%.0f' % ecm == '200':
@@ -647,7 +659,7 @@ def generate_plots(folder_path, ecm):
 def print_help_message():
     print "This script generates plots for comparisons with experimental data"
     print "Usage : "
-    print(color.bold + "./check_with_exp.py results_folder -ecm ecm "
+    print(color.bold + "./check_with_exp.py -ecm ecm "
           + "[-folder results_folder]"
           + color.end)
     print "Usage of check_with_exp.py command line arguments: "
