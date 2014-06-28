@@ -81,14 +81,14 @@ def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
 
 def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
                            run_record, err_record,
-                           norm_factor, vis, edec, tau0):
+                           norm_factor, vis, edec, tau0, eos_name):
     """
         Perform hydro + UrQMD hybrid simulations with averaged initial
         conditions
     """
     initial_path = 'RESULTS/initial_conditions'
-    result_folder = ('%s%.0fVis%gC%sEdec%gTau%g'
-                     % (model, ecm, vis, cen_list[icen], edec, tau0))
+    result_folder = ('%s%.0fVis%gC%sEdec%gTau%g_%s'
+                     % (model, ecm, vis, cen_list[icen], edec, tau0, eos_name))
     results_folder_path = path.join(path.abspath('./RESULTS'), result_folder)
     if path.exists(results_folder_path):
         shutil.rmtree(results_folder_path)
@@ -224,8 +224,8 @@ def fit_hydro(dNdeta_goal, vis, edec, tau0):
     return norm_factor
 
 
-def run_purehydro_all_centralities(model, ecm, norm_factor, vis, edec, tau0,
-                                   cf_flag):
+def run_purehydro_all_centralities(model, ecm, norm_factor,
+                                   vis, edec, tau0, eos_name, cf_flag):
     """
     shell function to run pure hydrodynamic simulation for all centrality bins
     """
@@ -241,22 +241,23 @@ def run_purehydro_all_centralities(model, ecm, norm_factor, vis, edec, tau0,
                               run_record, err_record,
                               norm_factor, vis, edec, tau0)
             shutil.move(path.join(iS_path, 'results'),
-                        path.join('RESULTS', '%s%.0fVis%gC%sEdec%gTau%g'
+                        path.join('RESULTS', '%s%.0fVis%gC%sEdec%gTau%g_%s'
                                   % (model, ecm, vis, cen_list[icen],
-                                     edec, tau0)))
+                                     edec, tau0, eos_name)))
         else:
             run_hydro_evo(icen, hydro_path, run_record, err_record,
                           norm_factor, vis, edec, tau0)
             shutil.move(path.join(hydro_path, 'results'),
                         path.join('RESULTS',
-                                  '%s%.0fVis%gC%sEdec%gTau%g_hydroOnly'
+                                  '%s%.0fVis%gC%sEdec%gTau%g_%s_hydroOnly'
                                   % (model, ecm, vis, cen_list[icen],
-                                     edec, tau0)))
+                                     edec, tau0, eos_name)))
     shutil.move(path.join('.', run_record_file_name), 'RESULTS')
     shutil.move(path.join('.', err_record_file_name), 'RESULTS')
 
 
-def run_hybrid_all_centralities(model, ecm, norm_factor, vis, edec, tau0):
+def run_hybrid_all_centralities(model, ecm, norm_factor,
+                                vis, edec, tau0, eos_name):
     """
     shell function for running hybrid calculations for all centrality bins.
     """
@@ -269,7 +270,7 @@ def run_hybrid_all_centralities(model, ecm, norm_factor, vis, edec, tau0):
     for icen in range(len(cen_list)):
         run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
                                run_record, err_record,
-                               norm_factor, vis, edec, tau0)
+                               norm_factor, vis, edec, tau0, eos_name)
     shutil.move(path.join('.', run_record_file_name), 'RESULTS')
     shutil.move(path.join('.', err_record_file_name), 'RESULTS')
 
@@ -338,10 +339,11 @@ def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, eos_name,
     if mode == 'hydro':
         print "running pure hydro simulations for all centralities ..."
         run_purehydro_all_centralities(model, ecm, norm_factor,
-                                       vis, edec, tau0, cf_flag)
+                                       vis, edec, tau0, eos_name, cf_flag)
     elif mode == 'hybrid':
         print "running hybrid simulations for all centralities ..."
-        run_hybrid_all_centralities(model, ecm, norm_factor, vis, edec, tau0)
+        run_hybrid_all_centralities(model, ecm, norm_factor,
+                                    vis, edec, tau0, eos_name)
     else:
         print sys.argv[0], ': invalid running mode', mode
         sys.exit(1)
