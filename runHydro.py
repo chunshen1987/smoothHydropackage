@@ -327,8 +327,12 @@ def run_simulations(mode, model, ecm, dN_deta, vis, edec, tau0, eos_name,
     set_eos(eos_name)
 
     initial_condition_name = '%s%.0f_sigmaNN_gauss_d0.4' % (model, ecm)
-    shutil.copytree(path.join('./initial_conditions', initial_condition_name),
-                    path.join(result_folder_path, 'initial_conditions'))
+    print('preparing initial conditions ...')
+    p = subprocess.Popen('unzip %s.zip' % initial_condition_name, shell=True,
+                         stdout=subprocess.PIPE, cwd='./initial_conditions')
+    p.wait()
+    shutil.move(path.join('./initial_conditions', initial_condition_name),
+                path.join(result_folder_path, 'initial_conditions'))
 
     # start to run simulations
     if fit_flag:
