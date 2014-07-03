@@ -10,4 +10,4 @@ for ii in VISHNew iSS iS osc2u urqmd
     )
 done
 
-echo "All programs have been compiled. Now let the fun begin!"
+echo -e "\033[1;32m All programs have been compiled. Now let the fun begin!"
