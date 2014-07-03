@@ -198,7 +198,7 @@ def fit_hydro(dNdeta_goal, vis, edec, tau0):
     err_record = open(path.join('.', err_record_file_name), 'a')
     hydro_path = path.abspath('./VISHNew')
     iS_path = path.abspath('./iS')
-    norm_factor = 1.0
+    norm_factor = 10.0
     tol = 1e-3
     target_file = 'Charged_eta_integrated_vndata.dat'
     while 1:
