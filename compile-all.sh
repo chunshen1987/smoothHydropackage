@@ -2,7 +2,7 @@
 
 for ii in VISHNew iSS iS osc2u urqmd
     do
-    echo "Compiling " $ii " ..."
+    echo -e "\033[1;35m Compiling " $ii " ... \033[0m"
     (cd $ii 
      make distclean
      make
