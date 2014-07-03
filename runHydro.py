@@ -332,7 +332,7 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
 
     edec = set_eos(eos_name, tdec)
 
-    initial_condition_name = '%s%.0f_sigmaNN_gauss_d0.4' % (model, ecm)
+    initial_condition_name = '%s%.0f_sigmaNN_gauss_d0.9' % (model, ecm)
     print('preparing initial conditions ...')
     p = subprocess.Popen('unzip %s.zip' % initial_condition_name, shell=True,
                          stdout=subprocess.PIPE, cwd='./initial_conditions')
@@ -458,7 +458,21 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # get dN/deta from the collision energy
-    if ecm < 62.4:
+    if 'CuCu' in model:
+        if ecm_string == '200.0':
+            dN_deta = 182
+        elif ecm_string == '62.4':
+            dN_deta = 125.04
+        else:
+            print sys.argv[0], ': invalid collision energy', ecm
+            sys.exit(1)
+    elif 'UU' in model:
+        if ecm_string == '193.0':
+            dN_deta = 1.0  # unknown yet, please use norm from Au+Au
+        else:
+            print sys.argv[0], ': invalid collision energy', ecm
+            sys.exit(1)
+    elif ecm < 62.4:
         dN_deta = 312.5 * np.log10(ecm) - 64.8
     elif ecm_string in dn_deta_dict.keys():
         dN_deta = dn_deta_dict[ecm_string]
