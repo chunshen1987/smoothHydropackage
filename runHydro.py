@@ -369,7 +369,9 @@ def print_help_message():
           + color.end)
     print "Usage of runHydro.py command line arguments: "
     print(color.bold + "-ecm" + color.end
-          + "   collision energy (GeV)")
+          + "   collision energy (GeV): "
+          + color.purple + "7.7, 11.5, 19.6, 27, 39, 62.4, 200, 2760"
+          + color.end)
     print(color.bold + "-mode" + color.end + "  the simulation type: "
           + color.purple + color.bold + " hydro[default]" + color.end
           + color.purple + ", hybrid" + color.end)
