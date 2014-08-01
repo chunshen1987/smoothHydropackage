@@ -364,7 +364,7 @@ def print_help_message():
     print "Usage : "
     print(color.bold
           + "./runHydro.py -ecm ecm "
-          + "[-mode mode -model model -vis vis -Edec edec -tau0 tau0 "
+          + "[-mode mode -model model -vis vis -Tdec Tdec -tau0 tau0 "
           + "-EOS eos_name -cf_flag cf_flag -fit_flag fit_flag]"
           + color.end)
     print "Usage of runHydro.py command line arguments: "
