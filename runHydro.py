@@ -34,7 +34,19 @@ class color:
     underline = '\033[4m'
     end = '\033[0m'
 
-def run_hydro_evo(icen, hydro_path, run_record, err_record,
+
+def generate_avg_initial_condition(model, ecm, chosen_centrality, collsys,
+                                   cut_type='total_entropy'):
+    cmd = 'generateAvgprofile.py'
+    args = ('-ecm %s -model %s -cen %s -cut_type %s -collision_system %s'
+            % (ecm, model, chosen_centrality, cut_type, collsys))
+    print "Generating event-averaged initial conditions..."
+    print(cmd + args)
+    p = subprocess.Popen(cmd + args, shell=True, cwd='./')
+    p.wait()
+    return
+
+def run_hydro_evo(cen_string, hydro_path, run_record, err_record,
                   norm_factor, vis, edec, tau0):
     """
         Perform pure hydro simulations with averaged initial conditions
@@ -48,30 +60,31 @@ def run_hydro_evo(icen, hydro_path, run_record, err_record,
     args = (' IINIT=2 IEOS=7 iEin=1 iLS=130'
             + ' T0=%6.4f Edec=%7.5f vis=%6.4f factor=%11.9f'
             % (tau0, edec, vis, norm_factor,))
-    shutil.copyfile('./%s/sdAvg_order_2_C%s.dat'
-                    % (initial_path, cen_list[icen]),
+
+    shutil.copyfile('./%s/sdAvg_order_2_C%s.dat' % (initial_path, cen_string),
                     path.join(hydro_path, 'Initial', 'InitialSd.dat'))
-    print "%s : %s" % (cen_list[icen], cmd + args)
+
+    print "%s : %s" % (cen_string, cmd + args)
     sys.stdout.flush()
     run_record.write(cmd + args)
     p = subprocess.Popen(cmd + args, shell=True, stdout=run_record,
                          stderr=err_record, cwd=hydro_path)
     p.wait()
 
-def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
+def run_hydro_with_iS(cen_string, hydro_path, iS_path, run_record, err_record,
                       norm_factor, vis, edec, tau0):
     """
         Perform pure hydro simulations + Cooper Frye freeze-out
         with averaged initial conditions
     """
-    run_hydro_evo(icen, hydro_path, run_record, err_record,
+    run_hydro_evo(cen_string, hydro_path, run_record, err_record,
                   norm_factor, vis, edec, tau0)
     # iS
     if path.exists(path.join(iS_path, 'results')):
         shutil.rmtree(path.join(iS_path, 'results'))
     shutil.move(path.join(hydro_path, 'results'),
                 path.join(iS_path, 'results'))
-    print "%s : %s" % (cen_list[icen], 'iS_withResonance.sh')
+    print "%s : %s" % (cen_string, 'iS_withResonance.sh')
     sys.stdout.flush()
     p = subprocess.Popen('./iS_withResonance.sh',
                          shell=True, stdout=run_record, stderr=err_record,
@@ -79,7 +92,7 @@ def run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
     p.wait()
 
 
-def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
+def run_hybrid_calculation(cen_string, model, ecm, hydro_path, iSS_path,
                            run_record, err_record,
                            norm_factor, vis, tdec, edec, tau0, eos_name):
     """
@@ -88,7 +101,7 @@ def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
     """
     initial_path = 'RESULTS/initial_conditions'
     result_folder = ('%s%.0fVis%gC%sTdec%gTau%g_%s'
-                     % (model, ecm, vis, cen_list[icen], tdec, tau0, eos_name))
+                     % (model, ecm, vis, cen_string, tdec, tau0, eos_name))
     results_folder_path = path.join(path.abspath('./RESULTS'), result_folder)
     if path.exists(results_folder_path):
         shutil.rmtree(results_folder_path)
@@ -102,10 +115,11 @@ def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
     args = (' IINIT=2 IEOS=7 iEin=1 iLS=130 '
             + 'T0=%6.4f Edec=%7.5f vis=%6.4f factor=%11.9f'
             % (tau0, edec, vis, norm_factor,))
-    shutil.copyfile('./%s/sdAvg_order_2_C%s.dat'
-                    % (initial_path, cen_list[icen]),
+
+    shutil.copyfile('./%s/sdAvg_order_2_C%s.dat' % (initial_path, cen_string),
                     path.join(hydro_path, 'Initial', 'InitialSd.dat'))
-    print "%s : %s" % (cen_list[icen], cmd + args)
+
+    print "%s : %s" % (cen_string, cmd + args)
     sys.stdout.flush()
     run_record.write(cmd + args)
     p = subprocess.Popen(cmd + args, shell=True, stdout=run_record,
@@ -127,7 +141,7 @@ def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
         remove(path.join(iSS_path, output_file))
     shutil.move(path.join(hydro_path, 'results'),
                 path.join(iSS_path, 'results'))
-    print "%s : %s" % (cen_list[icen], 'iSS.e')
+    print "%s : %s" % (cen_string, 'iSS.e')
     sys.stdout.flush()
     p = subprocess.Popen('ulimit -n 1000; ./iSS.e', shell=True,
                          stdout=run_record, stderr=err_record, cwd=iSS_path)
@@ -149,7 +163,7 @@ def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
     if path.isfile(path.join(o2u_path, output_file)):
         remove(path.join(o2u_path, output_file))
     shutil.move(path.join(iSS_path, input_file), o2u_path)
-    print "%s : %s" % (cen_list[icen], 'osu2u.e')
+    print "%s : %s" % (cen_string, 'osu2u.e')
     sys.stdout.flush()
     p = subprocess.Popen('./osc2u.e < %s' % input_file, shell=True,
                          stdout=run_record, stderr=err_record, cwd=o2u_path)
@@ -166,7 +180,7 @@ def run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
         remove(path.join(UrQMD_path, output_file))
     shutil.move(path.join(o2u_path, 'fort.14'),
                 path.join(UrQMD_path, input_file))
-    print "%s : %s" % (cen_list[icen], 'runqmd.sh')
+    print "%s : %s" % (cen_string, 'runqmd.sh')
     sys.stdout.flush()
     p = subprocess.Popen('bash runqmd.sh', shell=True, stdout=run_record,
                          stderr=err_record, cwd=UrQMD_path)
@@ -224,8 +238,8 @@ def fit_hydro(dNdeta_goal, vis, edec, tau0):
     return norm_factor
 
 
-def run_purehydro_all_centralities(model, ecm, norm_factor,
-                                   vis, tdec, edec, tau0, eos_name, cf_flag):
+def run_purehydro(model, ecm, norm_factor, vis, tdec, edec, tau0,
+                  eos_name, cf_flag, chosen_centrality):
     """
     shell function to run pure hydrodynamic simulation for all centrality bins
     """
@@ -235,29 +249,51 @@ def run_purehydro_all_centralities(model, ecm, norm_factor,
     err_record = open(path.join('.', err_record_file_name), 'a')
     hydro_path = path.abspath('./VISHNew')
     iS_path = path.abspath('./iS')
-    for icen in range(len(cen_list)):
+
+    if chosen_centrality == 'All':
+        for icen in range(len(cen_list)):
+            if cf_flag:
+                run_hydro_with_iS(cen_list[icen], hydro_path, iS_path,
+                                  run_record, err_record,
+                                  norm_factor, vis, edec, tau0)
+                shutil.move(path.join(iS_path, 'results'),
+                            path.join('RESULTS', '%s%.0fVis%gC%sTdec%gTau%g_%s'
+                                      % (model, ecm, vis, cen_list[icen],
+                                         tdec, tau0, eos_name)))
+            else:
+                run_hydro_evo(cen_list[icen], hydro_path,
+                              run_record, err_record,
+                              norm_factor, vis, edec, tau0)
+                shutil.move(path.join(hydro_path, 'results'),
+                            path.join('RESULTS',
+                                      '%s%.0fVis%gC%sTdec%gTau%g_%s_hydroOnly'
+                                      % (model, ecm, vis, cen_list[icen],
+                                         tdec, tau0, eos_name)))
+    else:
         if cf_flag:
-            run_hydro_with_iS(icen, hydro_path, iS_path,
+            run_hydro_with_iS(chosen_centrality, hydro_path, iS_path,
                               run_record, err_record,
                               norm_factor, vis, edec, tau0)
             shutil.move(path.join(iS_path, 'results'),
                         path.join('RESULTS', '%s%.0fVis%gC%sTdec%gTau%g_%s'
-                                  % (model, ecm, vis, cen_list[icen],
+                                  % (model, ecm, vis, chosen_centrality,
                                      tdec, tau0, eos_name)))
         else:
-            run_hydro_evo(icen, hydro_path, run_record, err_record,
+            run_hydro_evo(chosen_centrality, hydro_path,
+                          run_record, err_record,
                           norm_factor, vis, edec, tau0)
             shutil.move(path.join(hydro_path, 'results'),
                         path.join('RESULTS',
                                   '%s%.0fVis%gC%sTdec%gTau%g_%s_hydroOnly'
-                                  % (model, ecm, vis, cen_list[icen],
+                                  % (model, ecm, vis, chosen_centrality,
                                      tdec, tau0, eos_name)))
+
     shutil.move(path.join('.', run_record_file_name), 'RESULTS')
     shutil.move(path.join('.', err_record_file_name), 'RESULTS')
 
 
-def run_hybrid_all_centralities(model, ecm, norm_factor,
-                                vis, tdec, edec, tau0, eos_name):
+def run_hybrid(model, ecm, norm_factor, vis, tdec, edec,
+               tau0, eos_name, chosen_centrality):
     """
     shell function for running hybrid calculations for all centrality bins.
     """
@@ -267,10 +303,19 @@ def run_hybrid_all_centralities(model, ecm, norm_factor,
     err_record = open(path.join('.', err_record_file_name), 'a')
     hydro_path = path.abspath('./VISHNew')
     iSS_path = path.abspath('./iSS')
-    for icen in range(len(cen_list)):
-        run_hybrid_calculation(icen, model, ecm, hydro_path, iSS_path,
+
+    if chosen_centrality == 'All':
+        for icen in range(len(cen_list)):
+            run_hybrid_calculation(cen_list[icen], model, ecm,
+                                   hydro_path, iSS_path,
+                                   run_record, err_record, norm_factor,
+                                   vis, tdec, edec, tau0, eos_name)
+    else:
+        run_hybrid_calculation(chosen_centrality, model, ecm,
+                               hydro_path, iSS_path,
                                run_record, err_record,
                                norm_factor, vis, tdec, edec, tau0, eos_name)
+
     shutil.move(path.join('.', run_record_file_name), 'RESULTS')
     shutil.move(path.join('.', err_record_file_name), 'RESULTS')
 
@@ -306,7 +351,7 @@ def set_eos(eos_name, tdec):
     return edec
 
 def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
-                    cf_flag, fit_flag):
+                    cf_flag, fit_flag, chosen_centrality, collsys):
     """
     shell function to run simulations
     :param mode: simulation mode: hydro or hybrid
@@ -332,6 +377,9 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
 
     edec = set_eos(eos_name, tdec)
 
+    if collsys[0] not in ['Au', 'Pb'] and collsys[1] not in ['Au', 'Pb']:
+        model = model + collsys[0] + collsys[1]
+
     initial_condition_name = '%s%.0f_sigmaNN_gauss_d0.9' % (model, ecm)
     print('preparing initial conditions ...')
     p = subprocess.Popen('unzip %s.zip' % initial_condition_name, shell=True,
@@ -339,6 +387,16 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
     p.wait()
     shutil.move(path.join('./initial_conditions', initial_condition_name),
                 path.join(result_folder_path, 'initial_conditions'))
+
+    if chosen_centrality not in cen_list:
+        print("initial density profiles for %s%% centrality is not found \n"
+              % chosen_centrality)
+        generate_flag = raw_input("Do you want to generate one right now?")
+        if generate_flag.lower() in ['yes', 'y']:
+            generate_avg_initial_condition(model, ecm, chosen_centrality,
+                                           collsys)
+        else:
+            exit(0)
 
     # start to run simulations
     if fit_flag:
@@ -348,13 +406,12 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
         norm_factor = float(input("Please input the normalization factor: "))
     if mode == 'hydro':
         print "running pure hydro simulations for all centrality bins ..."
-        run_purehydro_all_centralities(model, ecm, norm_factor,
-                                       vis, tdec, edec, tau0, eos_name,
-                                       cf_flag)
+        run_purehydro(model, ecm, norm_factor, vis, tdec, edec, tau0,
+                      eos_name, cf_flag, chosen_centrality)
     elif mode == 'hybrid':
         print "running hybrid simulations for all centrality bins ..."
-        run_hybrid_all_centralities(model, ecm, norm_factor,
-                                    vis, tdec, edec, tau0, eos_name)
+        run_hybrid(model, ecm, norm_factor, vis, tdec, edec, tau0,
+                   eos_name, chosen_centrality)
     else:
         print sys.argv[0], ': invalid running mode', mode
         sys.exit(1)
@@ -365,7 +422,8 @@ def print_help_message():
     print(color.bold
           + "./runHydro.py -ecm ecm "
           + "[-mode mode -model model -vis vis -Tdec Tdec -tau0 tau0 "
-          + "-EOS eos_name -cf_flag cf_flag -fit_flag fit_flag]"
+          + "-EOS eos_name -cf_flag cf_flag -fit_flag fit_flag "
+          + "-cen cen_bounds -collision_system collsys]"
           + color.end)
     print "Usage of runHydro.py command line arguments: "
     print(color.bold + "-ecm" + color.end
@@ -401,6 +459,15 @@ def print_help_message():
           + "  switch to perfrom fit for normalization factor "
           + "to charged multiplicity before the simulation \n"
           + color.bold + "           fit_flag = True [default]" + color.end)
+    print(color.bold + "-cen" + color.end
+          + "  specify the centrality bin: "
+          + color.bold + "All [default]" + color.end
+          + color.purple + ', e.g. 20-30' + color.end)
+    print(color.bold + "-collision_system" + color.end
+          + " type of collision system: "
+          + color.purple + color.bold + " Pb+Pb[default]" + color.end
+          + color.purple + ", Au+Au, Cu+Au, U+U, p+Pb, p+Au, d+Au, He+Au"
+          + color.end)
     print(color.bold + "-h | -help" + color.end + "    This message")
 
 
@@ -412,6 +479,8 @@ if __name__ == "__main__":
     mode = 'hydro'
     model = 'MCGlb'
     eos_name = 's95p-v0-PCE165'
+    chosen_centrality = 'All'
+    collsys = 'Pb+Pb'.split('+')
     cf_flag = True
     fit_flag = True
 
@@ -445,6 +514,12 @@ if __name__ == "__main__":
         elif option == '-fit_flag':
             fit_flag = (sys.argv[1] == 'True')
             del sys.argv[1]
+        elif option == '-cen':
+            chosen_centrality = str(sys.argv[1]).split('-')
+            del sys.argv[1]
+        elif option == '-collision_system':
+            collsys = str(sys.argv[1]).split('+')
+            del sys.argv[1]
         elif option == '-h':
             print_help_message()
             sys.exit(0)
@@ -460,7 +535,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # get dN/deta from the collision energy
-    if 'CuCu' in model:
+    if 'Cu' in collsys:
         if ecm_string == '200.0':
             dN_deta = 182
         elif ecm_string == '62.4':
@@ -468,7 +543,7 @@ if __name__ == "__main__":
         else:
             print sys.argv[0], ': invalid collision energy', ecm
             sys.exit(1)
-    elif 'UU' in model:
+    elif 'U' in collsys:
         if ecm_string == '193.0':
             dN_deta = 1.0  # unknown yet, please use norm from Au+Au
         else:
@@ -484,7 +559,7 @@ if __name__ == "__main__":
 
     if mode in ['hydro', 'hybrid']:
         run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
-                        cf_flag, fit_flag)
+                        cf_flag, fit_flag, chosen_centrality, collsys)
     else:
         print sys.argv[0], ': invalid running mode', mode
         print_help_message()

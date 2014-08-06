@@ -37,7 +37,7 @@ superMCParameters = {
     'ecm'                           :   2760,
     'finalFactor'                   :   56.763,
     'use_ed'                        :   1,
-    'use_sd'                        :   0,
+    'use_sd'                        :   1,
     'alpha'                         :   0.118,
     'lambda'                        :   0.288,
     'operation'                     :   3,
