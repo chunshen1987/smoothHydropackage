@@ -296,7 +296,7 @@ def print_help_message():
           + "-cen cen_bounds"
           + "[-model model -collision_system collsys -cut_type cut_type]"
           + color.end)
-    print "Usage of runHydro.py command line arguments: "
+    print "Usage of generateAvgprofile.py command line arguments: "
     print(color.bold + "-cen" + color.end
           + "   centrality bounds(%): "
           + color.purple + "20-30" + color.end)
