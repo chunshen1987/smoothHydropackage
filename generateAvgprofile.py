@@ -37,7 +37,7 @@ superMCParameters = {
     'ecm'                           :   2760,
     'finalFactor'                   :   56.763,
     'use_ed'                        :   1,
-    'use_sd'                        :   1,
+    'use_sd'                        :   0,
     'alpha'                         :   0.118,
     'lambda'                        :   0.288,
     'operation'                     :   3,
@@ -218,65 +218,73 @@ def generateAvgprofile(centrality_bounds, cut_type='total_entropy'):
     p = subprocess.Popen(cmd, shell=True, stdout=runRecord,
                          stderr=errRecord, cwd=superMC_folder)
     p.wait()
-    store_folder = path.abspath('./RESULTS')
 
+    # save files
+    store_folder = path.abspath('./RESULTS')
     from_order = superMCParameters['average_from_order']
     to_order = superMCParameters['average_to_order']
     for iorder in range(from_order, to_order+1):
-        shutil.move(path.join(superMC_folder, 'data',
-                              'sdAvg_order_%d_block.dat' % iorder),
-                    path.join(store_folder,
-                              'sdAvg_order_%d_C%s.dat' % (iorder, cen_string)))
-        shutil.move(path.join(superMC_folder, 'data',
-                              'edAvg_order_%d_block.dat' % iorder),
-                    path.join(store_folder,
-                              'edAvg_order_%d_C%s.dat' % (iorder, cen_string)))
-        shutil.move(path.join(superMC_folder, 'data',
-                              'rho_binary_fromSd_order_%d_block.dat' % iorder),
-                    path.join(store_folder,
-                              'rho_binary_fromSd_order_%d_C%s.dat' % (
-                                  iorder, cen_string)))
-        shutil.move(path.join(superMC_folder, 'data',
-                              'rho_binary_fromEd_order_%d_block.dat' % iorder),
-                    path.join(store_folder,
-                              'rho_binary_fromEd_order_%d_C%s.dat' % (
-                                  iorder, cen_string)))
-        shutil.move(
-            path.join(superMC_folder, 'data',
-                      'nuclear_thickness_TA_fromSd_order_%d_block.dat'
-                      % iorder),
-            path.join(store_folder,
-                      'nuclear_thickness_TA_fromSd_order_%d_C%s.dat' % (
-                          iorder, cen_string)))
-        shutil.move(
-            path.join(superMC_folder, 'data',
-                      'nuclear_thickness_TB_fromSd_order_%d_block.dat'
-                      % iorder),
-            path.join(store_folder,
-                      'nuclear_thickness_TB_fromSd_order_%d_C%s.dat' % (
-                          iorder, cen_string)))
-        shutil.move(
-            path.join(superMC_folder, 'data',
-                      'nuclear_thickness_TA_fromEd_order_%d_block.dat'
-                      % iorder),
-            path.join(store_folder,
-                      'nuclear_thickness_TA_fromEd_order_%d_C%s.dat' % (
-                          iorder, cen_string)))
-        shutil.move(
-            path.join(superMC_folder, 'data',
-                      'nuclear_thickness_TB_fromEd_order_%d_block.dat'
-                      % iorder),
-            path.join(store_folder,
-                      'nuclear_thickness_TB_fromEd_order_%d_C%s.dat' % (
-                          iorder, cen_string)))
-        shutil.move(path.join(superMC_folder, 'data',
-                              'TATB_fromSd_order_%d_block.dat' % iorder),
-                    path.join(store_folder, 'TATB_fromSd_order_%d_C%s.dat' % (
-                        iorder, cen_string)))
-        shutil.move(path.join(superMC_folder, 'data',
-                              'TATB_fromEd_order_%d_block.dat' % iorder),
-                    path.join(store_folder, 'TATB_fromEd_order_%d_C%s.dat' % (
-                        iorder, cen_string)))
+        if superMCParameters['use_sd']:
+            shutil.move(
+                path.join(superMC_folder, 'data',
+                          'sdAvg_order_%d_block.dat' % iorder),
+                path.join(store_folder,
+                          'sdAvg_order_%d_C%s.dat' % (iorder, cen_string)))
+            shutil.move(
+                path.join(superMC_folder, 'data',
+                          'rho_binary_fromSd_order_%d_block.dat' % iorder),
+                path.join(store_folder,
+                          'rho_binary_fromSd_order_%d_C%s.dat'
+                          % (iorder, cen_string)))
+            shutil.move(
+                path.join(superMC_folder, 'data',
+                          'nuclear_thickness_TA_fromSd_order_%d_block.dat'
+                          % iorder),
+                path.join(store_folder,
+                          'nuclear_thickness_TA_fromSd_order_%d_C%s.dat' % (
+                              iorder, cen_string)))
+            shutil.move(
+                path.join(superMC_folder, 'data',
+                          'nuclear_thickness_TB_fromSd_order_%d_block.dat'
+                          % iorder),
+                path.join(store_folder,
+                          'nuclear_thickness_TB_fromSd_order_%d_C%s.dat' % (
+                              iorder, cen_string)))
+            shutil.move(path.join(superMC_folder, 'data',
+                                  'TATB_fromSd_order_%d_block.dat' % iorder),
+                        path.join(store_folder, 'TATB_fromSd_order_%d_C%s.dat'
+                                  % (iorder, cen_string)))
+
+        if superMCParameters['use_ed']:
+            shutil.move(
+                path.join(superMC_folder, 'data',
+                          'edAvg_order_%d_block.dat' % iorder),
+                path.join(store_folder,
+                          'edAvg_order_%d_C%s.dat' % (iorder, cen_string)))
+            shutil.move(
+                path.join(superMC_folder, 'data',
+                          'rho_binary_fromEd_order_%d_block.dat' % iorder),
+                path.join(store_folder,
+                          'rho_binary_fromEd_order_%d_C%s.dat'
+                          % (iorder, cen_string)))
+            shutil.move(
+                path.join(superMC_folder, 'data',
+                          'nuclear_thickness_TA_fromEd_order_%d_block.dat'
+                          % iorder),
+                path.join(store_folder,
+                          'nuclear_thickness_TA_fromEd_order_%d_C%s.dat' % (
+                              iorder, cen_string)))
+            shutil.move(
+                path.join(superMC_folder, 'data',
+                          'nuclear_thickness_TB_fromEd_order_%d_block.dat'
+                          % iorder),
+                path.join(store_folder,
+                          'nuclear_thickness_TB_fromEd_order_%d_C%s.dat' % (
+                              iorder, cen_string)))
+            shutil.move(path.join(superMC_folder, 'data',
+                                  'TATB_fromEd_order_%d_block.dat' % iorder),
+                        path.join(store_folder, 'TATB_fromEd_order_%d_C%s.dat'
+                                  % (iorder, cen_string)))
 
     shutil.move('./runRecord.dat', path.join(store_folder, 'runRecord.dat'))
     shutil.move('./errRecord.dat', path.join(store_folder, 'errRecord.dat'))
