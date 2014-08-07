@@ -8,8 +8,8 @@ hdf5_version = '1.8.13'
 
 def install_hdf5(install_path):
     scr_path = path.abspath('./hdf5-%s' % hdf5_version)
-    if path.exists(scr_path):
-        shutil.rmtree(scr_path)
+    if path.exists(install_path):
+        shutil.rmtree(install_path)
     p = subprocess.Popen('./configure --prefix=%s ' % install_path
                          + '--enable-fortran --enable-cxx', shell=True,
                          cwd=scr_path)
