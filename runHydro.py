@@ -37,7 +37,7 @@ class color:
 
 def generate_avg_initial_condition(model, ecm, chosen_centrality, collsys,
                                    cut_type='total_entropy'):
-    cmd = 'generateAvgprofile.py'
+    cmd = './generateAvgprofile.py '
     args = ('-ecm %s -model %s -cen %s -cut_type %s -collision_system %s'
             % (ecm, model, chosen_centrality, cut_type, collsys))
     print "Generating event-averaged initial conditions..."
@@ -217,7 +217,8 @@ def fit_hydro(dNdeta_goal, vis, edec, tau0):
     target_file = 'Charged_eta_integrated_vndata.dat'
     while 1:
         icen = 0
-        run_hydro_with_iS(icen, hydro_path, iS_path, run_record, err_record,
+        run_hydro_with_iS(cen_list[icen], hydro_path, iS_path, 
+                          run_record, err_record,
                           norm_factor, vis, edec, tau0)
         # get target results
         temp_data = open(path.join(iS_path, 'results', target_file), 'r')
@@ -377,19 +378,16 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
 
     edec = set_eos(eos_name, tdec)
 
-    if collsys[0] not in ['Au', 'Pb'] and collsys[1] not in ['Au', 'Pb']:
-        model = model + collsys[0] + collsys[1]
-
-    initial_condition_name = '%s%.0f_sigmaNN_gauss_d0.9' % (model, ecm)
     print('preparing initial conditions ...')
-    p = subprocess.Popen('unzip %s.zip' % initial_condition_name, shell=True,
-                         stdout=subprocess.PIPE, cwd='./initial_conditions')
-    p.wait()
-    shutil.move(path.join('./initial_conditions', initial_condition_name),
-                path.join(result_folder_path, 'initial_conditions'))
+    collsys_list = collsys.split('+')
+    if(collsys_list[0] not in ['Au', 'Pb'] or
+       collsys_list[1] not in ['Au', 'Pb']):
+        modelsys = model + collsys_list[0] + collsys_list[1]
+    else:
+        modelsys = model
 
     if chosen_centrality not in cen_list:
-        print("initial density profiles for %s%% centrality is not found \n"
+        print("initial density profiles for %s%% centrality is not found!"
               % chosen_centrality)
         generate_flag = raw_input("Do you want to generate one right now?")
         if generate_flag.lower() in ['yes', 'y']:
@@ -397,6 +395,26 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
                                            collsys)
         else:
             exit(0)
+    else:
+        initial_condition_name = '%s%.0f_sigmaNN_gauss_d0.9' % (modelsys, ecm)
+        if path.isfile('./initial_conditions/%s.zip' % initial_condition_name):
+            p = subprocess.Popen('unzip %s.zip' % initial_condition_name, 
+                                 shell=True, stdout=subprocess.PIPE, 
+                                 cwd='./initial_conditions')
+            p.wait()
+            shutil.move(
+                path.join('./initial_conditions', initial_condition_name),
+                path.join(result_folder_path, 'initial_conditions'))
+        else:
+            print("initial density profiles for %s%% centrality for %s %s " 
+                  "at sqrt{s} = %g A GeV is not found!" 
+                  % (chosen_centrality, model, collsys, ecm))
+            generate_flag = raw_input("Do you want to generate one right now?")
+            if generate_flag.lower() in ['yes', 'y']:
+                generate_avg_initial_condition(model, ecm, chosen_centrality, 
+                                               collsys)
+            else:
+                exit(0)
 
     # start to run simulations
     if fit_flag:
@@ -480,7 +498,7 @@ if __name__ == "__main__":
     model = 'MCGlb'
     eos_name = 's95p-v0-PCE165'
     chosen_centrality = 'All'
-    collsys = 'Pb+Pb'.split('+')
+    collsys = 'Pb+Pb'
     cf_flag = True
     fit_flag = True
 
@@ -515,10 +533,10 @@ if __name__ == "__main__":
             fit_flag = (sys.argv[1] == 'True')
             del sys.argv[1]
         elif option == '-cen':
-            chosen_centrality = str(sys.argv[1]).split('-')
+            chosen_centrality = str(sys.argv[1])
             del sys.argv[1]
         elif option == '-collision_system':
-            collsys = str(sys.argv[1]).split('+')
+            collsys = str(sys.argv[1])
             del sys.argv[1]
         elif option == '-h':
             print_help_message()

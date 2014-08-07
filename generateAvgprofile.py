@@ -35,7 +35,7 @@ superMCParameters = {
     'Aproj'                         :   208,
     'Atarg'                         :   208,
     'ecm'                           :   2760,
-    'finalFactor'                   :   56.763,
+    'finalFactor'                   :   1.0,
     'use_ed'                        :   1,
     'use_sd'                        :   1,
     'alpha'                         :   0.118,
@@ -205,7 +205,8 @@ def update_superMC_dict(model, ecm, collsys):
 
     return
 
-def generateAvgprofile(centrality_bounds, cut_type='total_entropy'):
+def generateAvgprofile(output_path, centrality_bounds, 
+                       cut_type='total_entropy'):
     runRecord = open('./runRecord.dat', 'a')
     errRecord = open('./errRecord.dat', 'a')
     translate_centrality_cut(centrality_bounds, cut_type)
@@ -220,7 +221,7 @@ def generateAvgprofile(centrality_bounds, cut_type='total_entropy'):
     p.wait()
 
     # save files
-    store_folder = path.abspath('./RESULTS')
+    store_folder = output_path
     from_order = superMCParameters['average_from_order']
     to_order = superMCParameters['average_to_order']
     for iorder in range(from_order, to_order+1):
@@ -323,6 +324,7 @@ if __name__ == "__main__":
     model = 'MCGlb'
     cut_type = 'total_entropy'
     collsys = 'Pb+Pb'.split('+')
+    output_path = path.abspath('./RESULTS/initial_conditions')
 
     while len(sys.argv) > 1:
         option = sys.argv[1]
@@ -346,6 +348,10 @@ if __name__ == "__main__":
         elif option == '-ecm':
             ecm = float(sys.argv[1])
             del sys.argv[1]
+        elif option == '-output':
+            folder = float(sys.argv[1])
+            output_path = path.join(path.abspath('./'), folder)
+            del sys.argv[1]
         elif option == '-h':
             print_help_message()
             sys.exit(0)
@@ -356,7 +362,7 @@ if __name__ == "__main__":
 
     try:
         update_superMC_dict(model, ecm, collsys)
-        generateAvgprofile(centrality_bounds, cut_type)
+        generateAvgprofile(output_path, centrality_bounds, cut_type)
     except NameError:
         print_help_message()
         sys.exit(1)
