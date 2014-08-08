@@ -1,6 +1,8 @@
 #! /usr/bin/env bash
 
-for ii in VISHNew iSS iS osc2u urqmd
+./check_prerequisites.py
+
+for ii in superMC VISHNew iSS iS osc2u urqmd
     do
     echo -e "\033[1;35m Compiling " $ii " ... \033[0m"
     (cd $ii 
