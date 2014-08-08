@@ -5,7 +5,7 @@
 """
 
 from os import getcwd, unlink, path
-from subprocess import call
+from subprocess import call, Popen
 
 number_of_spaces = 5
 
@@ -87,7 +87,7 @@ def check_environment():
         final_msgs.append("You need to install python numpy package.")
 
     # check hdf5 library
-    if not check_command("h5fc") and not check_command("h5c++"):
+    if not check_command("h5fc") or not check_command("h5c++"):
         final_msgs.append("You need to install hd5f library.")
 
     # check matplotlib
@@ -104,6 +104,11 @@ def check_environment():
     else:
         for msg in final_msgs:
             print(msg)
+            if 'hdf5' in msg:
+                choice = raw_input("Do you want to install hdf5 now?")
+                if choice.lower() in ['y', 'yes']:
+                    Popen('./localintall_hdf5.py', shell=Ture,
+                          cwd=path.abspath('./hdf5_support'))
         return False
 
 
