@@ -46,7 +46,7 @@ def check_module(module_name):
         __import__(module_name)
         print_msg("python %s module installed." % module_name)
         return True
-    except NameError:
+    except ImportError:
         print_warning("python %s module *NOT* installed." % module_name)
         return False
 
@@ -107,8 +107,9 @@ def check_environment():
             if 'hdf5' in msg:
                 choice = raw_input("Do you want to install hdf5 now? ")
                 if choice.lower() in ['y', 'yes']:
-                    Popen('./localintall_hdf5.py', shell=True,
-                          cwd=path.abspath('./hdf5_support'))
+                    p = Popen('./localintall_hdf5.py', shell=True,
+                              cwd=path.abspath('./hdf5_support'))
+                    p.wait()
         return False
 
 

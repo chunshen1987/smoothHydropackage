@@ -16,6 +16,8 @@ def install_hdf5(install_path):
         else:
             shutil.rmtree(install_path)
             install_flag = True
+    else:
+            install_flag = True
     if install_flag:
         p = subprocess.Popen('./configure --prefix=%s ' % install_path
                              + '--enable-fortran --enable-cxx', shell=True,
