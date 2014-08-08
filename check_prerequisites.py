@@ -89,7 +89,7 @@ def check_environment():
     # check hdf5 library
     if not check_command("h5fc") or not check_command("h5c++"):
         final_msgs.append("You need to install hdf5 library.")
-     
+
     # check matplotlib
     if not check_module("pylab"):
         print_warning("You need to install python matplotlib package to "
