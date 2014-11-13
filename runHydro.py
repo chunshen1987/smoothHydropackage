@@ -386,7 +386,7 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
     else:
         modelsys = model
 
-    if chosen_centrality not in cen_list:
+    if chosen_centrality not in cen_list and chosen_centrality != 'All':
         print("initial density profiles for %s%% centrality is not found!"
               % chosen_centrality)
         generate_flag = raw_input("Do you want to generate one right now?")
