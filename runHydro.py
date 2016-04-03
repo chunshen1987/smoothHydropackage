@@ -14,6 +14,7 @@ cen_list = ['0-5', '5-10', '10-20', '20-30', '30-40',
 
 # charged multiplicity dN/deta for 0-5% centrality
 dn_deta_dict = {'5500.0': 1974.234,
+                '5020.0': 1943.0,
                 '2760.0': 1601,
                 '200.0': 691,
                 '62.4': 472, }
@@ -38,12 +39,22 @@ class color:
 def generate_avg_initial_condition(model, ecm, chosen_centrality, collsys,
                                    cut_type='total_entropy'):
     cmd = './generateAvgprofile.py '
-    args = ('-ecm %s -model %s -cen %s -cut_type %s -collision_system %s'
-            % (ecm, model, chosen_centrality, cut_type, collsys))
-    print "Generating event-averaged initial conditions..."
-    print(cmd + args)
-    p = subprocess.Popen(cmd + args, shell=True, cwd='./')
-    p.wait()
+    if chosen_centrality == 'All':
+        for acen in cen_list:
+            args = (
+                '-ecm %s -model %s -cen %s -cut_type %s -collision_system %s'
+                % (ecm, model, acen, cut_type, collsys))
+            print "Generating event-averaged initial conditions..."
+            print(cmd + args)
+            p = subprocess.Popen(cmd + args, shell=True, cwd='./')
+            p.wait()
+    else:
+        args = ('-ecm %s -model %s -cen %s -cut_type %s -collision_system %s'
+                % (ecm, model, chosen_centrality, cut_type, collsys))
+        print "Generating event-averaged initial conditions..."
+        print(cmd + args)
+        p = subprocess.Popen(cmd + args, shell=True, cwd='./')
+        p.wait()
     return
 
 def run_hydro_evo(cen_string, hydro_path, run_record, err_record,
