@@ -6,6 +6,8 @@
 echo -e "\033[1;35m Compiling superMC ... \033[0m"
 (
     cd superMC
+    rm -fr data
+    mkdir data
     mkdir build
     cd build
     cmake ..
