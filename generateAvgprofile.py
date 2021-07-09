@@ -50,7 +50,7 @@ superMCParameters = {
     'output_TA'                     :   1,
     'output_rhob'                   :   1,
     'output_spectator_density'      :   1,
-    'nev'                           :   5000,
+    'nev'                           :   1000,
     'average_from_order'            :   2,
     'average_to_order'              :   2,
     'maxx'                          :   15.0,
@@ -335,7 +335,6 @@ if __name__ == "__main__":
                 print_help_message()
                 sys.exit(1)
         elif option == '-cen':
-            print(str(sys.argv[1]).split('-'))
             centrality_bounds = list(map(float, str(sys.argv[1]).split('-')))
             del sys.argv[1]
         elif option == '-ecm':

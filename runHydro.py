@@ -154,8 +154,10 @@ def run_hybrid_calculation(cen_string, model, ecm, hydro_path, iSS_path,
                 path.join(iSS_path, 'results'))
     print("%s : %s" % (cen_string, 'iSS.e'))
     sys.stdout.flush()
-    p = subprocess.Popen('ulimit -n 1000; ./iSS.e', shell=True,
-                         stdout=run_record, stderr=err_record, cwd=iSS_path)
+    p = subprocess.Popen(
+        'ulimit -n 1000; ./iSS.e hydro_mode=0 ' +
+        'sample_upto_desired_particle_number=1',
+        shell=True, stdout=run_record, stderr=err_record, cwd=iSS_path)
     p.wait()
     worth_storing = []
     for aGlob in ['*vn*.dat']:
