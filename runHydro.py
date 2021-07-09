@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import shutil
 from os import path, makedirs, remove
@@ -44,14 +44,14 @@ def generate_avg_initial_condition(model, ecm, chosen_centrality, collsys,
             args = (
                 '-ecm %s -model %s -cen %s -cut_type %s -collision_system %s'
                 % (ecm, model, acen, cut_type, collsys))
-            print "Generating event-averaged initial conditions..."
+            print("Generating event-averaged initial conditions...")
             print(cmd + args)
             p = subprocess.Popen(cmd + args, shell=True, cwd='./')
             p.wait()
     else:
         args = ('-ecm %s -model %s -cen %s -cut_type %s -collision_system %s'
                 % (ecm, model, chosen_centrality, cut_type, collsys))
-        print "Generating event-averaged initial conditions..."
+        print("Generating event-averaged initial conditions...")
         print(cmd + args)
         p = subprocess.Popen(cmd + args, shell=True, cwd='./')
         p.wait()
@@ -75,7 +75,7 @@ def run_hydro_evo(cen_string, hydro_path, run_record, err_record,
     shutil.copyfile('./%s/sdAvg_order_2_C%s.dat' % (initial_path, cen_string),
                     path.join(hydro_path, 'Initial', 'InitialSd.dat'))
 
-    print "%s : %s" % (cen_string, cmd + args)
+    print("%s : %s" % (cen_string, cmd + args))
     sys.stdout.flush()
     run_record.write(cmd + args)
     p = subprocess.Popen(cmd + args, shell=True, stdout=run_record,
@@ -95,7 +95,7 @@ def run_hydro_with_iS(cen_string, hydro_path, iS_path, run_record, err_record,
         shutil.rmtree(path.join(iS_path, 'results'))
     shutil.move(path.join(hydro_path, 'results'),
                 path.join(iS_path, 'results'))
-    print "%s : %s" % (cen_string, 'iS_withResonance.sh')
+    print("%s : %s" % (cen_string, 'iS_withResonance.sh'))
     sys.stdout.flush()
     p = subprocess.Popen('./iS_withResonance.sh',
                          shell=True, stdout=run_record, stderr=err_record,
@@ -130,7 +130,7 @@ def run_hybrid_calculation(cen_string, model, ecm, hydro_path, iSS_path,
     shutil.copyfile('./%s/sdAvg_order_2_C%s.dat' % (initial_path, cen_string),
                     path.join(hydro_path, 'Initial', 'InitialSd.dat'))
 
-    print "%s : %s" % (cen_string, cmd + args)
+    print("%s : %s" % (cen_string, cmd + args))
     sys.stdout.flush()
     run_record.write(cmd + args)
     p = subprocess.Popen(cmd + args, shell=True, stdout=run_record,
@@ -152,7 +152,7 @@ def run_hybrid_calculation(cen_string, model, ecm, hydro_path, iSS_path,
         remove(path.join(iSS_path, output_file))
     shutil.move(path.join(hydro_path, 'results'),
                 path.join(iSS_path, 'results'))
-    print "%s : %s" % (cen_string, 'iSS.e')
+    print("%s : %s" % (cen_string, 'iSS.e'))
     sys.stdout.flush()
     p = subprocess.Popen('ulimit -n 1000; ./iSS.e', shell=True,
                          stdout=run_record, stderr=err_record, cwd=iSS_path)
@@ -174,7 +174,7 @@ def run_hybrid_calculation(cen_string, model, ecm, hydro_path, iSS_path,
     if path.isfile(path.join(o2u_path, output_file)):
         remove(path.join(o2u_path, output_file))
     shutil.move(path.join(iSS_path, input_file), o2u_path)
-    print "%s : %s" % (cen_string, 'osu2u.e')
+    print("%s : %s" % (cen_string, 'osu2u.e'))
     sys.stdout.flush()
     p = subprocess.Popen('./osc2u.e < %s' % input_file, shell=True,
                          stdout=run_record, stderr=err_record, cwd=o2u_path)
@@ -191,7 +191,7 @@ def run_hybrid_calculation(cen_string, model, ecm, hydro_path, iSS_path,
         remove(path.join(UrQMD_path, output_file))
     shutil.move(path.join(o2u_path, 'fort.14'),
                 path.join(UrQMD_path, input_file))
-    print "%s : %s" % (cen_string, 'runqmd.sh')
+    print("%s : %s" % (cen_string, 'runqmd.sh'))
     sys.stdout.flush()
     p = subprocess.Popen('bash runqmd.sh', shell=True, stdout=run_record,
                          stderr=err_record, cwd=UrQMD_path)
@@ -235,8 +235,8 @@ def fit_hydro(dNdeta_goal, vis, edec, tau0):
         temp_data = open(path.join(iS_path, 'results', target_file), 'r')
         dN_deta = float(temp_data.readline().split()[1])
         temp_data.close()
-        print "dNdeta_goal = %g, dNdeta = %g, norm = : %g" % (
-            dNdeta_goal, dN_deta, norm_factor,)
+        print("dNdeta_goal = %g, dNdeta = %g, norm = : %g" % (
+            dNdeta_goal, dN_deta, norm_factor,))
         sys.stdout.flush()
         shutil.rmtree(path.join(iS_path, 'results'))
         if abs(dN_deta - dNdeta_goal) / dNdeta_goal > tol:
@@ -400,7 +400,7 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
     if chosen_centrality not in cen_list and chosen_centrality != 'All':
         print("initial density profiles for %s%% centrality is not found!"
               % chosen_centrality)
-        generate_flag = raw_input("Do you want to generate one right now?")
+        generate_flag = input("Do you want to generate one right now?")
         if generate_flag.lower() in ['yes', 'y']:
             generate_avg_initial_condition(model, ecm, chosen_centrality,
                                            collsys)
@@ -420,7 +420,7 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
             print("initial density profiles for %s%% centrality for %s %s " 
                   "at sqrt{s} = %g A GeV is not found!" 
                   % (chosen_centrality, model, collsys, ecm))
-            generate_flag = raw_input("Do you want to generate one right now?")
+            generate_flag = input("Do you want to generate one right now?")
             if generate_flag.lower() in ['yes', 'y']:
                 generate_avg_initial_condition(model, ecm, chosen_centrality, 
                                                collsys)
@@ -429,32 +429,32 @@ def run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
 
     # start to run simulations
     if fit_flag:
-        print "fitting the overall normalization factor ..."
+        print("fitting the overall normalization factor ...")
         norm_factor = fit_hydro(dN_deta, vis, edec, tau0)
     else:
         norm_factor = float(input("Please input the normalization factor: "))
     if mode == 'hydro':
-        print "running pure hydro simulations for all centrality bins ..."
+        print("running pure hydro simulations for all centrality bins ...")
         run_purehydro(model, ecm, norm_factor, vis, tdec, edec, tau0,
                       eos_name, cf_flag, chosen_centrality)
     elif mode == 'hybrid':
-        print "running hybrid simulations for all centrality bins ..."
+        print("running hybrid simulations for all centrality bins ...")
         run_hybrid(model, ecm, norm_factor, vis, tdec, edec, tau0,
                    eos_name, chosen_centrality)
     else:
-        print sys.argv[0], ': invalid running mode', mode
+        print(sys.argv[0], ': invalid running mode', mode)
         sys.exit(1)
 
 
 def print_help_message():
-    print "Usage : "
+    print("Usage : ")
     print(color.bold
           + "./runHydro.py -ecm ecm "
           + "[-mode mode -model model -vis vis -Tdec Tdec -tau0 tau0 "
           + "-EOS eos_name -cf_flag cf_flag -fit_flag fit_flag "
           + "-cen cen_bounds -collision_system collsys]"
           + color.end)
-    print "Usage of runHydro.py command line arguments: "
+    print("Usage of runHydro.py command line arguments: ")
     print(color.bold + "-ecm" + color.end
           + "   collision energy (GeV): "
           + color.purple + "7.7, 11.5, 19.6, 27, 39, 62.4, 200, 2760"
@@ -553,7 +553,7 @@ if __name__ == "__main__":
             print_help_message()
             sys.exit(0)
         else:
-            print sys.argv[0], ': invalid option', option
+            print(sys.argv[0], ': invalid option', option)
             print_help_message()
             sys.exit(1)
 
@@ -570,26 +570,26 @@ if __name__ == "__main__":
         elif ecm_string == '62.4':
             dN_deta = 125.04
         else:
-            print sys.argv[0], ': invalid collision energy', ecm
+            print(sys.argv[0], ': invalid collision energy', ecm)
             sys.exit(1)
     elif 'U' in collsys:
         if ecm_string == '193.0':
             dN_deta = 1.0  # unknown yet, please use norm from Au+Au
         else:
-            print sys.argv[0], ': invalid collision energy', ecm
+            print(sys.argv[0], ': invalid collision energy', ecm)
             sys.exit(1)
     elif ecm < 62.4:
         dN_deta = 312.5 * np.log10(ecm) - 64.8
     elif ecm_string in dn_deta_dict.keys():
         dN_deta = dn_deta_dict[ecm_string]
     else:
-        print sys.argv[0], ': invalid collision energy', ecm
+        print(sys.argv[0], ': invalid collision energy', ecm)
         sys.exit(1)
 
     if mode in ['hydro', 'hybrid']:
         run_simulations(mode, model, ecm, dN_deta, vis, tdec, tau0, eos_name,
                         cf_flag, fit_flag, chosen_centrality, collsys)
     else:
-        print sys.argv[0], ': invalid running mode', mode
+        print(sys.argv[0], ': invalid running mode', mode)
         print_help_message()
         sys.exit(1)
