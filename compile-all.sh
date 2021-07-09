@@ -12,6 +12,8 @@ echo -e "\033[1;35m Compiling superMC ... \033[0m"
     make
     make install
 )
+rm -fr centrality_cut_tables
+cp -r superMC/scripts/centrality_cut_tables .
 
 
 # VISHNew
