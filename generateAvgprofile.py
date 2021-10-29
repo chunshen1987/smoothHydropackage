@@ -53,8 +53,8 @@ superMCParameters = {
     'nev'                           :   1000,
     'average_from_order'            :   2,
     'average_to_order'              :   2,
-    'maxx'                          :   15.0,
-    'maxy'                          :   15.0,
+    'maxx'                          :   13.0,
+    'maxy'                          :   13.0,
     'dx'                            :   0.1,
     'dy'                            :   0.1,
 }
